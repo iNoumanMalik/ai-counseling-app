@@ -20,10 +20,10 @@ class MoodSelector extends ConsumerStatefulWidget {
 class _MoodSelectorState extends ConsumerState<MoodSelector> {
   final List<MoodOption> _moods = const [
     MoodOption(emoji: '😊', label: AppStrings.moodHappy, color: AppColors.moodHappy),
-    MoodOption(emoji: '😐', label: AppStrings.moodOkay, color: AppColors.moodOkay),
+    MoodOption(emoji: '😐', label: AppStrings.moodOkay, color: AppColors.moodNeutral),
     MoodOption(emoji: '😔', label: AppStrings.moodSad, color: AppColors.moodSad),
-    MoodOption(emoji: '😰', label: AppStrings.moodAnxious, color: AppColors.moodAnxious),
-    MoodOption(emoji: '😌', label: AppStrings.moodCalm, color: AppColors.moodCalm),
+    MoodOption(emoji: '😰', label: AppStrings.moodAnxious, color: AppColors.moodAnxiety),
+    MoodOption(emoji: '😌', label: AppStrings.moodCalm, color: AppColors.softAqua),
   ];
 
   Future<void> _selectMood(String mood) async {
@@ -61,7 +61,7 @@ class _MoodSelectorState extends ConsumerState<MoodSelector> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primarySkyBlue.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -82,7 +82,7 @@ class _MoodSelectorState extends ConsumerState<MoodSelector> {
                     color: mood.color.withOpacity(isSelected ? 1.0 : 0.2),
                     shape: BoxShape.circle,
                     border: isSelected
-                        ? Border.all(color: AppColors.primary, width: 3)
+                        ? Border.all(color: AppColors.primarySkyBlue, width: 3)
                         : null,
                   ),
                   child: Center(
@@ -102,7 +102,7 @@ class _MoodSelectorState extends ConsumerState<MoodSelector> {
                 Text(
                   mood.label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isSelected ? AppColors.primary : AppColors.mediumGray,
+                        color: isSelected ? AppColors.primarySkyBlue : AppColors.lightGray300,
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                 ),
@@ -126,4 +126,3 @@ class MoodOption {
     required this.color,
   });
 }
-

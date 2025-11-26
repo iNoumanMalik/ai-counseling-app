@@ -15,23 +15,23 @@ class CategoryCard extends StatelessWidget {
   Color _getCategoryColor(String category) {
     switch (category) {
       case 'Anxiety':
-        return AppColors.moodAnxious;
+        return AppColors.moodAnxiety;
       case 'Depression':
         return AppColors.moodSad;
       case 'Trauma':
-        return AppColors.primary;
+        return AppColors.deepTherapyBlue;
       case 'Relationship':
-        return Colors.pink.shade300;
+        return AppColors.lavender;
       case 'Child Psychology':
-        return AppColors.secondary;
+        return AppColors.primaryMintGreen;
       case 'Grief':
-        return Colors.grey.shade400;
+        return AppColors.moodNeutral;
       case 'Stress Management':
-        return AppColors.accent;
+        return AppColors.moodStressed;
       case 'Marriage Counseling':
-        return Colors.purple.shade300;
+        return AppColors.lavender;
       default:
-        return AppColors.primary;
+        return AppColors.primarySkyBlue;
     }
   }
 
@@ -118,4 +118,3 @@ class CategoryCard extends StatelessWidget {
         );
   }
 }
-

@@ -19,25 +19,45 @@ class MoodSelector extends ConsumerStatefulWidget {
 
 class _MoodSelectorState extends ConsumerState<MoodSelector> {
   final List<MoodOption> _moods = const [
-    MoodOption(emoji: '😊', label: AppStrings.moodHappy, color: AppColors.moodHappy),
-    MoodOption(emoji: '😐', label: AppStrings.moodOkay, color: AppColors.moodNeutral),
-    MoodOption(emoji: '😔', label: AppStrings.moodSad, color: AppColors.moodSad),
-    MoodOption(emoji: '😰', label: AppStrings.moodAnxious, color: AppColors.moodAnxiety),
-    MoodOption(emoji: '😌', label: AppStrings.moodCalm, color: AppColors.softAqua),
+    MoodOption(
+      iconPath: 'assets/icons/lovers.png',
+      label: AppStrings.moodHappy,
+      color: AppColors.moodHappy,
+    ),
+    MoodOption(
+      iconPath: 'assets/icons/laugh-emoji.png',
+      label: AppStrings.moodOkay,
+      color: AppColors.moodNeutral,
+    ),
+    MoodOption(
+      iconPath: 'assets/icons/cry-emoji.png',
+      label: AppStrings.moodSad,
+      color: AppColors.moodSad,
+    ),
+    MoodOption(
+      iconPath: 'assets/icons/angry.png',
+      label: AppStrings.moodAnxious,
+      color: AppColors.moodAnxiety,
+    ),
+    MoodOption(
+      iconPath: 'assets/icons/licking.png',
+      label: AppStrings.moodCalm,
+      color: AppColors.softAqua,
+    ),
   ];
 
   Future<void> _selectMood(String mood) async {
     ref.read(_selectedMoodProvider.notifier).state = mood;
-    
+
     // Save mood entry
     final entry = MoodEntry(
       id: const Uuid().v4(),
       mood: mood,
       date: DateTime.now(),
     );
-    
+
     await StorageService.addMoodEntry(entry.toJson());
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -76,22 +96,27 @@ class _MoodSelectorState extends ConsumerState<MoodSelector> {
             child: Column(
               children: [
                 Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: mood.color.withOpacity(isSelected ? 1.0 : 0.2),
-                    shape: BoxShape.circle,
-                    border: isSelected
-                        ? Border.all(color: AppColors.primarySkyBlue, width: 3)
-                        : null,
-                  ),
-                  child: Center(
-                    child: Text(
-                      mood.emoji,
-                      style: const TextStyle(fontSize: 30),
-                    ),
-                  ),
-                )
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: mood.color.withOpacity(isSelected ? 1.0 : 0.2),
+                        shape: BoxShape.circle,
+                        border: isSelected
+                            ? Border.all(
+                                color: AppColors.primarySkyBlue,
+                                width: 3,
+                              )
+                            : null,
+                      ),
+                      child: Center(
+                        child: Image.asset(
+                          mood.iconPath,
+                          width: 36,
+                          height: 36,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    )
                     .animate(target: isSelected ? 1 : 0)
                     .scale(
                       begin: const Offset(1, 1),
@@ -102,9 +127,13 @@ class _MoodSelectorState extends ConsumerState<MoodSelector> {
                 Text(
                   mood.label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isSelected ? AppColors.primarySkyBlue : AppColors.lightGray300,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      ),
+                    color: isSelected
+                        ? AppColors.primarySkyBlue
+                        : AppColors.lightGray300,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
                 ),
               ],
             ),
@@ -116,12 +145,12 @@ class _MoodSelectorState extends ConsumerState<MoodSelector> {
 }
 
 class MoodOption {
-  final String emoji;
+  final String iconPath;
   final String label;
   final Color color;
 
   const MoodOption({
-    required this.emoji,
+    required this.iconPath,
     required this.label,
     required this.color,
   });

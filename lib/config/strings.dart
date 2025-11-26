@@ -16,7 +16,7 @@ class AppStrings {
   static const String onboardingDone = "Get Started";
 
   // Home
-  static const String homeGreeting = "Hi {name} 👋, how are you feeling today?";
+  static const String homeGreeting = "Hi {name} , how are you feeling today?";
   static const String homeMoodSelection = "Select your mood";
   static const String homeQuickActions = "Quick Actions";
   static const String homeExploreCounselors = "Explore Counselors";

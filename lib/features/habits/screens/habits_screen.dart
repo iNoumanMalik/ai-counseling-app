@@ -112,11 +112,11 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
                                 .animate()
                                 .fadeIn(duration: 400.ms)
                                 .slideX(begin: -0.2, end: 0),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 16),
                             Text(
                               '${AppStrings.habitsStreak}: $_streak 🔥',
                               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: AppColors.primary,
+                                    color: AppColors.dark900,
                                     fontWeight: FontWeight.w600,
                                   ),
                             )

@@ -23,26 +23,30 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final List<OnboardingPageData> _pages = [
     const OnboardingPageData(
       title: "Welcome to MindWell",
-      description: "Your personal companion for mental wellness and self-improvement",
-      emoji: "🧘",
+      description:
+          "Your personal companion for mental wellness and self-improvement",
+      iconPath: "assets/icons/meditation.png",
       gradient: [AppColors.primary, Color(0xFF8B7FFF)],
     ),
     const OnboardingPageData(
       title: "Track Your Mood",
-      description: "Understand your feelings better with daily mood tracking and insights",
-      emoji: "😊",
+      description:
+          "Understand your feelings better with daily mood tracking and insights",
+      iconPath: "assets/icons/gauge.png",
       gradient: [AppColors.secondary, Color(0xFFB8F5D1)],
     ),
     const OnboardingPageData(
       title: "Self-Help Tools",
-      description: "Access breathing exercises, meditation, and CBT worksheets anytime",
-      emoji: "✨",
+      description:
+          "Access breathing exercises, meditation, and CBT worksheets anytime",
+      iconPath: "assets/icons/assessment.png",
       gradient: [AppColors.accent, Color(0xFFFFE5D4)],
     ),
     const OnboardingPageData(
       title: "Find Support",
-      description: "Discover qualified counselors and connect with them through trusted platforms",
-      emoji: "🤝",
+      description:
+          "Discover qualified counselors and connect with them through trusted platforms",
+      iconPath: "assets/icons/care.png",
       gradient: [AppColors.primary, AppColors.secondary],
     ),
   ];
@@ -95,14 +99,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     child: Text(
                       AppStrings.onboardingSkip,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: AppColors.mediumGray,
-                          ),
+                        color: AppColors.mediumGray,
+                      ),
                     ),
                   ),
-                )
-                    .animate()
-                    .fadeIn(duration: 300.ms)
-                    .slideX(begin: 0.2, end: 0),
+                ).animate().fadeIn(duration: 300.ms).slideX(begin: 0.2, end: 0),
               ),
 
               // Page view
@@ -129,35 +130,38 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
                         _pages.length,
-                        (index) => Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: currentPage == index ? 24 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: currentPage == index
-                                ? AppColors.primary
-                                : AppColors.mediumGray.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        )
-                            .animate(target: currentPage == index ? 1 : 0)
-                            .scale(duration: 300.ms),
+                        (index) =>
+                            Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  width: currentPage == index ? 24 : 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: currentPage == index
+                                        ? AppColors.primary
+                                        : AppColors.mediumGray.withOpacity(0.3),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                )
+                                .animate(target: currentPage == index ? 1 : 0)
+                                .scale(duration: 300.ms),
                       ),
                     ),
                     const SizedBox(height: 32),
 
                     // Next button
                     SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _nextPage,
-                        child: Text(
-                          currentPage < _pages.length - 1
-                              ? AppStrings.onboardingNext
-                              : AppStrings.onboardingGetStarted,
-                        ),
-                      ),
-                    )
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _nextPage,
+                            child: Text(
+                              currentPage < _pages.length - 1
+                                  ? AppStrings.onboardingNext
+                                  : AppStrings.onboardingGetStarted,
+                            ),
+                          ),
+                        )
                         .animate()
                         .fadeIn(duration: 300.ms)
                         .slideY(begin: 0.2, end: 0),
@@ -184,32 +188,34 @@ class _OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Emoji icon
+          // iconPath icon
           Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: data.gradient,
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: data.gradient[0].withOpacity(0.3),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: data.gradient,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: data.gradient[0].withOpacity(0.3),
+                      blurRadius: 30,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                data.emoji,
-                style: const TextStyle(fontSize: 60),
-              ),
-            ),
-          )
+                child: Center(
+                  child: Image.asset(
+                    data.iconPath,
+                    width: 70,
+                    height: 70,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              )
               .animate()
               .scale(duration: 600.ms, curve: Curves.elasticOut)
               .fadeIn(duration: 400.ms),
@@ -217,13 +223,13 @@ class _OnboardingPage extends StatelessWidget {
 
           // Title
           Text(
-            data.title,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: AppColors.darkText,
+                data.title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  color: AppColors.dark700,
                   fontWeight: FontWeight.bold,
                 ),
-          )
+              )
               .animate()
               .fadeIn(delay: 200.ms, duration: 400.ms)
               .slideY(begin: 0.2, end: 0),
@@ -231,12 +237,12 @@ class _OnboardingPage extends StatelessWidget {
 
           // Description
           Text(
-            data.description,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.mediumGray,
-                ),
-          )
+                data.description,
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: AppColors.dark700),
+              )
               .animate()
               .fadeIn(delay: 400.ms, duration: 400.ms)
               .slideY(begin: 0.2, end: 0),
@@ -249,14 +255,13 @@ class _OnboardingPage extends StatelessWidget {
 class OnboardingPageData {
   final String title;
   final String description;
-  final String emoji;
+  final String iconPath;
   final List<Color> gradient;
 
   const OnboardingPageData({
     required this.title,
     required this.description,
-    required this.emoji,
+    required this.iconPath,
     required this.gradient,
   });
 }
-

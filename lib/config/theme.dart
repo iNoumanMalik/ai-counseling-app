@@ -42,7 +42,7 @@ class AppTheme {
         displaySmall: TextStyle(
           // fontFamily: 'Poppins', // Uncomment after adding fonts
           fontSize: 24,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w900,
           color: AppColors.dark900,
           height: 1.3,
         ),

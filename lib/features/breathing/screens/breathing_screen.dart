@@ -152,33 +152,35 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
                     // Duration selector
                     if (!_isRunning) ...[
                       Text(
-                        'Select Duration',
+                        '',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _DurationButton(
-                            label: AppStrings.breathingSession1Min,
-                            seconds: 60,
-                            isSelected: duration == 60,
-                            onTap: () => _setDuration(60),
-                          ),
-                          _DurationButton(
-                            label: AppStrings.breathingSession3Min,
-                            seconds: 180,
-                            isSelected: duration == 180,
-                            onTap: () => _setDuration(180),
-                          ),
-                          _DurationButton(
-                            label: AppStrings.breathingSession5Min,
-                            seconds: 300,
-                            isSelected: duration == 300,
-                            onTap: () => _setDuration(300),
-                          ),
-                        ],
-                      ),
+                      // Wrap(
+                      //   spacing: 12,
+                      //   runSpacing: 12,
+                      //   alignment: WrapAlignment.center,
+                      //   children: [
+                      //     _DurationButton(
+                      //       label: AppStrings.breathingSession1Min,
+                      //       seconds: 60,
+                      //       isSelected: duration == 60,
+                      //       onTap: () => _setDuration(60),
+                      //     ),
+                      //     _DurationButton(
+                      //       label: AppStrings.breathingSession3Min,
+                      //       seconds: 180,
+                      //       isSelected: duration == 180,
+                      //       onTap: () => _setDuration(180),
+                      //     ),
+                      //     _DurationButton(
+                      //       label: AppStrings.breathingSession5Min,
+                      //       seconds: 300,
+                      //       isSelected: duration == 300,
+                      //       onTap: () => _setDuration(300),
+                      //     ),
+                      //   ],
+                      // ),
                       const SizedBox(height: 32),
                     ],
 
@@ -220,7 +222,9 @@ class _BreathingCircle extends StatelessWidget {
         ? (state == 'inhale' ? 250.0 : 150.0)
         : 200.0;
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeInOut,
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -239,11 +243,16 @@ class _BreathingCircle extends StatelessWidget {
           ),
         ],
       ),
-      child: Center(
-        child: Icon(
-          Icons.water_drop_outlined,
-          size: size * 0.4,
-          color: AppColors.white,
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOut,
+        scale: isRunning ? (state == 'inhale' ? 1.05 : 0.95) : 1,
+        child: Center(
+          child: Icon(
+            Icons.water_drop_outlined,
+            size: size * 0.4,
+            color: AppColors.white,
+          ),
         ),
       ),
     );

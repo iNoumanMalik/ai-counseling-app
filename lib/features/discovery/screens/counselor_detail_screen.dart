@@ -220,24 +220,24 @@ class CounselorDetailScreen extends StatelessWidget {
               const SizedBox(height: 12),
 
               if (counselor.whatsappNumber != null)
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _openWhatsApp(
-                      counselor.whatsappNumber,
-                      counselor.name,
-                    ),
-                    icon: const Icon(Icons.chat_outlined),
-                    label: Text(AppStrings.counselorWhatsApp),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: const Color(0xFF25D366), // WhatsApp green
-                    ),
-                  ),
-                )
-                    .animate()
-                    .fadeIn(delay: 700.ms, duration: 400.ms)
-                    .slideX(begin: -0.2, end: 0),
+                // SizedBox(
+                //   width: double.infinity,
+                //   child: ElevatedButton.icon(
+                //     onPressed: () => _openWhatsApp(
+                //       counselor.whatsappNumber,
+                //       counselor.name,
+                //     ),
+                //     icon: const Icon(Icons.chat_outlined),
+                //     label: Text(AppStrings.counselorWhatsApp),
+                //     style: ElevatedButton.styleFrom(
+                //       padding: const EdgeInsets.symmetric(vertical: 16),
+                //       backgroundColor: const Color(0xFF25D366), // WhatsApp green
+                //     ),
+                //   ),
+                // )
+                //     .animate()
+                //     .fadeIn(delay: 700.ms, duration: 400.ms)
+                //     .slideX(begin: -0.2, end: 0),
               const SizedBox(height: 32),
             ],
           ),

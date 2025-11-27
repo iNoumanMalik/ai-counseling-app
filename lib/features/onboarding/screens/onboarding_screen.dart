@@ -99,7 +99,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     child: Text(
                       AppStrings.onboardingSkip,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.mediumGray,
+                        color: AppColors.dark700,
                       ),
                     ),
                   ),

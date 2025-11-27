@@ -94,10 +94,10 @@ class SosScreen extends StatelessWidget {
                 // Emergency numbers
                 _EmergencyCard(
                   title: 'Emergency Services',
-                  number: '112',
+                  number: '1122',
                   description: 'National Emergency Number',
                   icon: Icons.local_hospital,
-                  onTap: () => _call('112'),
+                  onTap: () => _call('1122'),
                 )
                     .animate()
                     .fadeIn(delay: 200.ms, duration: 400.ms)

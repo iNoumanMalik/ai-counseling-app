@@ -4,7 +4,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/utils/storage_service.dart';
+import '../../../services/user_service.dart';
 
 class OnboardingCompleteScreen extends StatefulWidget {
   const OnboardingCompleteScreen({super.key});
@@ -26,9 +29,19 @@ class _OnboardingCompleteScreenState extends State<OnboardingCompleteScreen> {
   Future<void> _completeSetup() async {
     final name = _nameController.text.trim();
     if (name.isNotEmpty) {
-      await StorageService.setUserName(name);
-      if (mounted) {
-        context.go('/home');
+      try {
+        await UserService(FirebaseFirestore.instance, FirebaseAuth.instance)
+            .createOrUpdateProfile(name: name);
+        await StorageService.setOnboardingComplete(true);
+        if (mounted) {
+          context.go('/home');
+        }
+      } catch (e) {
+        await StorageService.setUserName(name);
+        await StorageService.setOnboardingComplete(true);
+        if (mounted) {
+          context.go('/home');
+        }
       }
     } else {
       // Show error

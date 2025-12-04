@@ -4,6 +4,9 @@ import 'package:audioplayers/audioplayers.dart';
 import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../services/meditation_service.dart';
 
 class MeditationScreen extends StatefulWidget {
   const MeditationScreen({super.key});
@@ -78,6 +81,14 @@ class _MeditationScreenState extends State<MeditationScreen> {
           _currentTrack = null;
           _currentPosition = Duration.zero;
         });
+        // Mark completed in Firestore when a track finishes
+        try {
+          final trackId = _currentTrack?.id;
+          if (trackId != null) {
+            MeditationService(FirebaseFirestore.instance, FirebaseAuth.instance)
+                .markCompleted(trackId, true);
+          }
+        } catch (_) {}
       }
     });
   }
@@ -131,6 +142,12 @@ class _MeditationScreenState extends State<MeditationScreen> {
         _currentTrack = null;
         _currentPosition = Duration.zero;
       });
+      // Consider stop as completion for short practices
+      final trackId = _currentTrack?.id;
+      if (trackId != null) {
+        MeditationService(FirebaseFirestore.instance, FirebaseAuth.instance)
+            .markCompleted(trackId, true);
+      }
     }
   }
 

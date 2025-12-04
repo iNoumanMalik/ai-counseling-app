@@ -6,42 +6,92 @@ import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../core/utils/storage_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../services/journal_service.dart';
 import '../../../data/models/journal_entry.dart';
 
-class JournalScreen extends StatefulWidget {
+class JournalScreen extends ConsumerWidget {
   const JournalScreen({super.key});
 
   @override
-  State<JournalScreen> createState() => _JournalScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entriesAsync = ref.watch(journalEntriesProvider);
 
-class _JournalScreenState extends State<JournalScreen> {
-  List<JournalEntry> _entries = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadEntries();
-  }
-
-  Future<void> _loadEntries() async {
-    final data = await StorageService.getJournalEntries();
-    setState(() {
-      _entries = data
-          .map((e) => JournalEntry.fromJson(e))
-          .toList()
-        ..sort((a, b) => b.date.compareTo(a.date));
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.journalTitle),
       ),
       body: AnimatedBackground(
-        child: _entries.isEmpty
+        child: entriesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, st) {
+            return FutureBuilder<List<Map<String, dynamic>>>(
+              future: StorageService.getJournalEntries(),
+              builder: (context, snap) {
+                if (!snap.hasData) {
+                  return const Center(child: Text('Error loading entries'));
+                }
+                final entries = snap.data!
+                    .map((e) => JournalEntry.fromJson(e))
+                    .toList()
+                  ..sort((a, b) => b.date.compareTo(a.date));
+                return entries.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.edit_note_outlined,
+                              size: 80,
+                              color: AppColors.mediumGray,
+                            )
+                                .animate(onPlay: (controller) => controller.repeat())
+                                .shimmer(duration: 2000.ms),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No journal entries yet',
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    color: AppColors.mediumGray,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Start writing your thoughts',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.mediumGray,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(20),
+                        itemCount: entries.length,
+                        itemBuilder: (context, index) {
+                          final entry = entries[index];
+                          return _JournalEntryCard(
+                            entry: entry,
+                            onTap: () {
+                              context.push('/journal/${entry.id}');
+                            },
+                            onDelete: () async {
+                              await StorageService.deleteJournalEntry(entry.id);
+                            },
+                          )
+                              .animate(delay: (index * 50).ms)
+                              .fadeIn(duration: 400.ms)
+                              .slideX(begin: -0.2, end: 0);
+                        },
+                      );
+              },
+            );
+          },
+          data: (list) {
+            final entries = list
+                .map((e) => JournalEntry.fromJson(e))
+                .toList()
+              ..sort((a, b) => b.date.compareTo(a.date));
+            return entries.isEmpty
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -72,24 +122,25 @@ class _JournalScreenState extends State<JournalScreen> {
               )
             : ListView.builder(
                 padding: const EdgeInsets.all(20),
-                itemCount: _entries.length,
+                itemCount: entries.length,
                 itemBuilder: (context, index) {
-                  final entry = _entries[index];
+                  final entry = entries[index];
                   return _JournalEntryCard(
                     entry: entry,
                     onTap: () {
                       context.push('/journal/${entry.id}');
                     },
                     onDelete: () async {
-                      await StorageService.deleteJournalEntry(entry.id);
-                      _loadEntries();
+                      await ref.read(journalServiceProvider).deleteEntry(entry.id);
                     },
                   )
                       .animate(delay: (index * 50).ms)
                       .fadeIn(duration: 400.ms)
                       .slideX(begin: -0.2, end: 0);
                 },
-              ),
+              );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/journal/new'),

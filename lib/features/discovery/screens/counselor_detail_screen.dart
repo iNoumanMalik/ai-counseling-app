@@ -7,8 +7,13 @@ import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../data/dummy/counselors_data.dart';
 import '../../../data/models/counselor.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../services/counselor_service.dart';
+import '../../../core/utils/storage_service.dart';
 
-class CounselorDetailScreen extends StatelessWidget {
+class CounselorDetailScreen extends ConsumerWidget {
   final String counselorId;
 
   const CounselorDetailScreen({super.key, required this.counselorId});
@@ -46,7 +51,7 @@ class CounselorDetailScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final counselor = _getCounselor();
 
     if (counselor == null) {
@@ -184,6 +189,36 @@ class CounselorDetailScreen extends StatelessWidget {
                   .animate()
                   .fadeIn(delay: 400.ms, duration: 400.ms),
               const SizedBox(height: 16),
+
+              // Save counselor
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    try {
+                      await ref.read(counselorServiceProvider).saveCounselor(
+                        counselorId: counselor.id,
+                        name: counselor.name,
+                        link: counselor.marhamUrl ?? counselor.oladocUrl ?? '',
+                      );
+                    } catch (_) {
+                      await StorageService.saveCounselor({
+                        'id': counselor.id,
+                        'name': counselor.name,
+                        'link': counselor.marhamUrl ?? counselor.oladocUrl ?? '',
+                      });
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Counselor saved')),
+                    );
+                  },
+                  icon: const Icon(Icons.bookmark_add_outlined),
+                  label: const Text('Save Counselor'),
+                ),
+              )
+                  .animate()
+                  .fadeIn(delay: 450.ms, duration: 400.ms)
+                  .slideX(begin: -0.2, end: 0),
 
               if (counselor.marhamUrl != null)
                 SizedBox(

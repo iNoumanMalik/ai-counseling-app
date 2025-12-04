@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:uuid/uuid.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../config/colors.dart';
 import '../../../config/strings.dart';
+import '../../../services/journal_service.dart';
 import '../../../core/utils/storage_service.dart';
 
 class JournalEntryScreen extends StatefulWidget {
@@ -29,7 +32,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   }
 
   Future<void> _loadEntry() async {
-    final entries = await StorageService.getJournalEntries();
+    final entries = await JournalService(FirebaseFirestore.instance, FirebaseAuth.instance).listEntries();
     final entryData = entries.firstWhere(
       (e) => e['id'] == widget.entryId,
       orElse: () => {},
@@ -65,8 +68,17 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
       'date': DateTime.now().toIso8601String(),
     };
 
-    // TODO: Update existing entry if editing
-    await StorageService.saveJournalEntry(entry);
+    try {
+      final service = JournalService(FirebaseFirestore.instance, FirebaseAuth.instance);
+      await service.addOrUpdateEntry(
+        id: entry['id'] as String,
+        title: entry['title'] as String?,
+        content: entry['content'] as String,
+        date: entry['date'] as String,
+      );
+    } catch (_) {
+      await StorageService.saveJournalEntry(entry);
+    }
 
     setState(() {
       _isLoading = false;

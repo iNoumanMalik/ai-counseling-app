@@ -7,6 +7,8 @@ import 'core/navigation/app_router.dart';
 import 'core/utils/storage_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; // This is auto-generated
+import 'services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 void main() async {
@@ -15,6 +17,12 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  try {
+  UserCredential userCred = await FirebaseAuth.instance.signInAnonymously();
+  print('Signed in anonymously as: ${userCred.user?.uid}');
+} catch (e) {
+  print('Anonymous sign-in failed: $e');
+}
 
   runApp(
     const ProviderScope(
@@ -37,7 +45,15 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
+    _initAuth();
     _initialLocation = _getInitialLocation();
+  }
+
+  void _initAuth() {
+    // Ensure an authenticated user exists (anonymous sign-in)
+    // Do not block UI; sign-in happens in background
+    final auth = ref.read(authServiceProvider);
+    auth.ensureSignedIn();
   }
 
   Future<String> _getInitialLocation() async {

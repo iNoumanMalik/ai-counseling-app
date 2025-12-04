@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:confetti/confetti.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/utils/storage_service.dart';
 import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../core/widgets/animated_bottom_nav.dart';
-import '../../../core/utils/storage_service.dart';
+import '../../../services/habits_service.dart';
+import '../../../services/user_service.dart';
 
 final _habitsProvider = StateProvider<Map<String, bool>>((ref) => {});
 
@@ -43,42 +47,60 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
   }
 
   Future<void> _loadHabits() async {
-    final habits = await StorageService.getHabits();
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    
-    final Map<String, bool> completed = {};
-    for (final habit in _habits) {
-      final habitData = habits[habit.id];
-      if (habitData != null && habitData['date']?.toString().startsWith(today) == true) {
-        completed[habit.id] = habitData['completed'] ?? false;
-      } else {
-        completed[habit.id] = false;
-      }
+    try {
+      final service = HabitsService(FirebaseFirestore.instance, FirebaseAuth.instance);
+      final fetched = await service.getHabits();
+      final Map<String, bool> completed = {
+        for (final h in _habits) h.id: fetched[h.id] ?? false,
+      };
+      ref.read(_habitsProvider.notifier).state = completed;
+    } catch (_) {
+      final local = await StorageService.getHabits();
+      final Map<String, bool> completed = {
+        for (final h in _habits) h.id: (local[h.id]?['completed'] as bool?) ?? false,
+      };
+      ref.read(_habitsProvider.notifier).state = completed;
     }
-    ref.read(_habitsProvider.notifier).state = completed;
   }
 
   Future<void> _loadStreak() async {
-    final streak = await StorageService.getHabitStreak();
-    setState(() {
-      _streak = streak;
-    });
+    try {
+      final data = await UserService(FirebaseFirestore.instance, FirebaseAuth.instance).getUserData();
+      setState(() {
+        _streak = (data?['habitStreak'] as int?) ?? 0;
+      });
+    } catch (_) {
+      final streak = await StorageService.getHabitStreak();
+      setState(() {
+        _streak = streak;
+      });
+    }
   }
 
   Future<void> _toggleHabit(String habitId, bool completed) async {
-    await StorageService.updateHabit(habitId, completed);
-    ref.read(_habitsProvider.notifier).state = {
-      ...ref.read(_habitsProvider),
-      habitId: completed,
-    };
+    try {
+      await HabitsService(FirebaseFirestore.instance, FirebaseAuth.instance).setHabit(habitId, completed);
+      ref.read(_habitsProvider.notifier).state = {
+        ...ref.read(_habitsProvider),
+        habitId: completed,
+      };
+    } catch (e) {
+      // Fallback to local storage
+      await StorageService.updateHabit(habitId, completed);
+      ref.read(_habitsProvider.notifier).state = {
+        ...ref.read(_habitsProvider),
+        habitId: completed,
+      };
+    }
 
     // Check if all habits completed
     final allCompleted = ref.read(_habitsProvider).values.every((v) => v || ref.read(_habitsProvider)[habitId] == true);
     if (completed && allCompleted) {
       _confettiController.play();
-      // Increase streak
       final newStreak = _streak + 1;
-      await StorageService.setHabitStreak(newStreak);
+      try {
+        await UserService(FirebaseFirestore.instance, FirebaseAuth.instance).updateHabitStreak(newStreak);
+      } catch (_) {}
       setState(() {
         _streak = newStreak;
       });

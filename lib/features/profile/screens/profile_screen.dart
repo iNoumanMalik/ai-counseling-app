@@ -5,6 +5,11 @@ import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../core/widgets/animated_bottom_nav.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../services/user_service.dart';
+import '../../../services/journal_service.dart';
+import '../../../services/mood_service.dart';
 import '../../../core/utils/storage_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -27,14 +32,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadProfileData() async {
-    final name = await StorageService.getUserName();
-    final streak = await StorageService.getHabitStreak();
-    final journals = await StorageService.getJournalEntries();
-    final moods = await StorageService.getMoodHistory();
+    Map<String, dynamic>? userData;
+    List<Map<String, dynamic>> journals = [];
+    List<Map<String, dynamic>> moods = [];
+    try {
+      userData = await UserService(FirebaseFirestore.instance, FirebaseAuth.instance).getUserData();
+    } catch (_) {}
+    try {
+      journals = await JournalService(FirebaseFirestore.instance, FirebaseAuth.instance).listEntries();
+    } catch (_) {
+      final local = await StorageService.getJournalEntries();
+      journals = local;
+    }
+    try {
+      moods = await MoodService(FirebaseFirestore.instance, FirebaseAuth.instance).getMoodHistory();
+    } catch (_) {
+      final local = await StorageService.getMoodHistory();
+      moods = local;
+    }
+
+    final fallbackName = await StorageService.getUserName();
+    final fallbackStreak = await StorageService.getHabitStreak();
 
     setState(() {
-      _userName = name ?? 'User';
-      _streak = streak;
+      _userName = (userData?['name'] as String?) ?? fallbackName ?? 'User';
+      _streak = (userData?['habitStreak'] as int?) ?? fallbackStreak;
       _journalCount = journals.length;
       _moodCount = moods.length;
     });

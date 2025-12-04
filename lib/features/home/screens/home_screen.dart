@@ -7,6 +7,9 @@ import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../core/widgets/animated_bottom_nav.dart';
 import '../../../core/utils/storage_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../services/user_service.dart';
 import '../widgets/mood_selector.dart';
 import '../widgets/quick_action_card.dart';
 
@@ -27,10 +30,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _loadUserName() async {
-    final name = await StorageService.getUserName();
-    setState(() {
-      _userName = name ?? 'Friend';
-    });
+    try {
+      final data = await UserService(FirebaseFirestore.instance, FirebaseAuth.instance).getUserData();
+      setState(() {
+        _userName = (data?['name'] as String?) ?? 'Friend';
+      });
+    } catch (_) {
+      final local = await StorageService.getUserName();
+      setState(() {
+        _userName = local ?? 'Friend';
+      });
+    }
   }
 
   @override

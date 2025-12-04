@@ -4,6 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../../../config/colors.dart';
 import '../../../config/strings.dart';
+import '../../../services/mood_service.dart';
+import '../../../services/user_service.dart';
 import '../../../core/utils/storage_service.dart';
 import '../../../data/models/mood_entry.dart';
 import 'package:uuid/uuid.dart';
@@ -49,14 +51,20 @@ class _MoodSelectorState extends ConsumerState<MoodSelector> {
   Future<void> _selectMood(String mood) async {
     ref.read(_selectedMoodProvider.notifier).state = mood;
 
-    // Save mood entry
-    final entry = MoodEntry(
-      id: const Uuid().v4(),
-      mood: mood,
-      date: DateTime.now(),
-    );
-
-    await StorageService.addMoodEntry(entry.toJson());
+    // Save mood entry to Firestore and update lastMood
+    try {
+      final moodService = ref.read(moodServiceProvider);
+      await moodService.saveMood(mood);
+      await ref.read(userServiceProvider).updateLastMood(mood);
+    } catch (e) {
+      // Fallback to local storage
+      final entry = MoodEntry(
+        id: const Uuid().v4(),
+        mood: mood,
+        date: DateTime.now(),
+      );
+      await StorageService.addMoodEntry(entry.toJson());
+    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

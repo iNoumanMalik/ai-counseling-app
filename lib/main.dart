@@ -5,16 +5,24 @@ import 'config/theme.dart';
 import 'config/colors.dart';
 import 'core/navigation/app_router.dart';
 import 'core/utils/storage_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; // This is auto-generated
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(
     const ProviderScope(
       child: MyApp(),
     ),
   );
 }
+
 
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});

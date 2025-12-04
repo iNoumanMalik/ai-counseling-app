@@ -18,40 +18,12 @@ class OnboardingCompleteScreen extends StatefulWidget {
 }
 
 class _OnboardingCompleteScreenState extends State<OnboardingCompleteScreen> {
-  final TextEditingController _nameController = TextEditingController();
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
+  void _goToSignUp() {
+    context.go('/auth/signup');
   }
 
-  Future<void> _completeSetup() async {
-    final name = _nameController.text.trim();
-    if (name.isNotEmpty) {
-      try {
-        await UserService(FirebaseFirestore.instance, FirebaseAuth.instance)
-            .createOrUpdateProfile(name: name);
-        await StorageService.setOnboardingComplete(true);
-        if (mounted) {
-          context.go('/home');
-        }
-      } catch (e) {
-        await StorageService.setUserName(name);
-        await StorageService.setOnboardingComplete(true);
-        if (mounted) {
-          context.go('/home');
-        }
-      }
-    } else {
-      // Show error
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your name'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
+  void _goToSignIn() {
+    context.go('/auth/signin');
   }
 
   @override
@@ -106,7 +78,7 @@ class _OnboardingCompleteScreenState extends State<OnboardingCompleteScreen> {
 
                 // Description
                 Text(
-                  "What should we call you?",
+                  "Create an account or sign in to continue",
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppColors.mediumGray,
@@ -117,32 +89,27 @@ class _OnboardingCompleteScreenState extends State<OnboardingCompleteScreen> {
                     .slideY(begin: 0.2, end: 0),
                 const SizedBox(height: 32),
 
-                // Name input
-                TextField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    hintText: "Enter your name",
-                    prefixIcon: Icon(Icons.person_outline_rounded),
-                  ),
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textCapitalization: TextCapitalization.words,
-                  autofocus: true,
-                )
-                    .animate()
-                    .fadeIn(delay: 600.ms, duration: 400.ms)
-                    .slideY(begin: 0.2, end: 0),
-                const SizedBox(height: 32),
-
-                // Continue button
+                // Actions
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _completeSetup,
-                    child: const Text(AppStrings.onboardingDone),
+                    onPressed: _goToSignUp,
+                    child: const Text('Create Account'),
                   ),
                 )
                     .animate()
                     .fadeIn(delay: 800.ms, duration: 400.ms)
+                    .slideY(begin: 0.2, end: 0),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: _goToSignIn,
+                    child: const Text('Sign In'),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(delay: 900.ms, duration: 400.ms)
                     .slideY(begin: 0.2, end: 0),
               ],
             ),

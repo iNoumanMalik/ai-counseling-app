@@ -13,9 +13,21 @@ import '../../features/meditation/screens/meditation_screen.dart';
 import '../../features/crisis/screens/sos_screen.dart';
 import '../../features/worksheets/screens/worksheets_screen.dart';
 import '../../features/onboarding/screens/onboarding_complete_screen.dart';
+import '../../features/auth/screens/sign_in_screen.dart';
+import '../../features/auth/screens/sign_up_screen.dart';
 
 /// App routing configuration - routes only (no GoRouter instance)
-final appRoutes = [
+  final appRoutes = [
+    GoRoute(
+      path: '/auth/signin',
+      name: 'signin',
+      builder: (context, state) => const SignInScreen(),
+    ),
+    GoRoute(
+      path: '/auth/signup',
+      name: 'signup',
+      builder: (context, state) => const SignUpScreen(),
+    ),
     GoRoute(
       path: '/onboarding',
       name: 'onboarding',

@@ -20,6 +20,30 @@ class AuthService {
       rethrow;
     }
   }
+
+  Future<User> signInWithEmail(String email, String password) async {
+    final cred = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    return cred.user!;
+  }
+
+  Future<User> signUpWithEmail(String email, String password) async {
+    final cred = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    return cred.user!;
+  }
+
+  Future<void> sendPasswordReset(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  Future<void> signOut() async {
+    await _auth.signOut();
+  }
 }
 
 final authServiceProvider = Provider<AuthService>((ref) {

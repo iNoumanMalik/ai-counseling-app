@@ -230,14 +230,14 @@ class _BreathingCircle extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: RadialGradient(
           colors: [
-            AppColors.primary.withOpacity(state == 'inhale' ? 0.6 : 0.3),
-            AppColors.secondary.withOpacity(state == 'exhale' ? 0.4 : 0.2),
+            AppColors.primary.withValues(alpha: state == 'inhale' ? 0.6 : 0.3),
+            AppColors.secondary.withValues(alpha: state == 'exhale' ? 0.4 : 0.2),
           ],
         ),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 30,
             spreadRadius: 10,
           ),
@@ -299,4 +299,3 @@ class _DurationButton extends StatelessWidget {
         .scale(duration: 200.ms);
   }
 }
-

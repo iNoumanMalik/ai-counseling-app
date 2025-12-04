@@ -29,7 +29,7 @@ class QuickActionCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.2),
+                color: AppColors.primary.withValues(alpha: 0.2),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -84,4 +84,3 @@ class QuickActionCard extends StatelessWidget {
         );
   }
 }
-

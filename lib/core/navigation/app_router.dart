@@ -12,6 +12,8 @@ import '../../features/profile/screens/profile_screen.dart';
 import '../../features/meditation/screens/meditation_screen.dart';
 import '../../features/crisis/screens/sos_screen.dart';
 import '../../features/worksheets/screens/worksheets_screen.dart';
+import '../../features/worksheets/screens/worksheet_detail_screen.dart';
+import '../../features/checkin/screens/checkin_screen.dart';
 import '../../features/onboarding/screens/onboarding_complete_screen.dart';
 import '../../features/auth/screens/sign_in_screen.dart';
 import '../../features/auth/screens/sign_up_screen.dart';
@@ -101,6 +103,19 @@ import '../../features/auth/screens/sign_up_screen.dart';
       path: '/worksheets',
       name: 'worksheets',
       builder: (context, state) => const WorksheetsScreen(),
+    ),
+    GoRoute(
+      path: '/worksheets/:id',
+      name: 'worksheet-detail',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return WorksheetDetailScreen(id: id);
+      },
+    ),
+    GoRoute(
+      path: '/checkin',
+      name: 'checkin',
+      builder: (context, state) => const CheckinScreen(),
     ),
     GoRoute(
       path: '/profile',

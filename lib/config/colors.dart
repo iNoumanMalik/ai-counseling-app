@@ -73,11 +73,11 @@ class AppColors {
   static const Color darkText = Color(0xFF94A3B8);
 
   // ========== GLASSMORPHISM COLORS ==========
-  static Color glassWhite = Colors.white.withOpacity(0.2);
-  static Color glassSkyBlue = const Color(0xFF4FACFE).withOpacity(0.25);
-  static Color glassMintGreen = const Color(0xFF00C9A7).withOpacity(0.2);
-  static Color glassLavender = const Color(0xFFA78BFA).withOpacity(0.2);
-  static Color glassShadow = Colors.black.withOpacity(0.08);
+  static Color glassWhite = Colors.white.withValues(alpha: 0.2);
+  static Color glassSkyBlue = const Color(0xFF4FACFE).withValues(alpha: 0.25);
+  static Color glassMintGreen = const Color(0xFF00C9A7).withValues(alpha: 0.2);
+  static Color glassLavender = const Color(0xFFA78BFA).withValues(alpha: 0.2);
+  static Color glassShadow = Colors.black.withValues(alpha: 0.08);
 
   // ========== BACKGROUND GRADIENTS ==========
   

@@ -66,13 +66,7 @@ class WorksheetsScreen extends StatelessWidget {
                 return _WorksheetCard(
                   worksheet: worksheet,
                   onTap: () {
-                    // TODO: Navigate to worksheet detail
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Worksheet: ${worksheet.title}'),
-                        backgroundColor: AppColors.primary,
-                      ),
-                    );
+                    context.push('/worksheets/${worksheet.id}');
                   },
                 )
                     .animate(delay: (index * 100).ms)
@@ -111,7 +105,7 @@ class _WorksheetCard extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: worksheet.color.withOpacity(0.2),
+                  color: worksheet.color.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

@@ -116,9 +116,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             title: AppStrings.homeMeditation,
                             icon: Icons.self_improvement_outlined,
                             gradient: LinearGradient(
-                              colors: [AppColors.accent, AppColors.accent.withOpacity(0.7)],
+                              colors: [AppColors.accent, AppColors.accent.withValues(alpha: 0.7)],
                             ),
                             onTap: () => context.push('/meditation'),
+                          ),
+                          QuickActionCard(
+                            title: 'Worksheets',
+                            icon: Icons.menu_book_outlined,
+                            gradient: AppColors.secondaryGradient,
+                            onTap: () => context.push('/worksheets'),
                           ),
                           QuickActionCard(
                             title: AppStrings.homeExploreCounselors,
@@ -126,12 +132,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             gradient: AppColors.primaryGradient,
                             onTap: () => context.push('/discovery'),
                           ),
+                          QuickActionCard(
+                            title: 'MCQ Check-in',
+                            icon: Icons.quiz_outlined,
+                            gradient: AppColors.secondaryGradient,
+                            onTap: () => context.push('/checkin'),
+                          ),
                         ],
                       )
                           .animate()
                           .fadeIn(delay: 400.ms, duration: 400.ms)
                           .slideY(begin: 0.2, end: 0),
 
+                      const SizedBox(height: 32),
                       const SizedBox(height: 32),
                     ],
                   ),

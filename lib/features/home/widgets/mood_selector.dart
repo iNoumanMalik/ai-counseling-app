@@ -75,6 +75,33 @@ class _MoodSelectorState extends ConsumerState<MoodSelector> {
           duration: const Duration(seconds: 2),
         ),
       );
+      try {
+        final history = await ref.read(moodServiceProvider).getMoodHistory();
+        final count = history.length;
+        final badges = await StorageService.getBadges();
+        if (count >= 5 && !badges.contains('mood_5')) {
+          await StorageService.addBadge('mood_5');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Badge earned: Mood Explorer'), backgroundColor: AppColors.accent),
+          );
+        }
+        if (count >= 20 && !badges.contains('mood_20')) {
+          await StorageService.addBadge('mood_20');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Badge earned: Mood Master'), backgroundColor: AppColors.secondary),
+          );
+        }
+      } catch (_) {
+        final history = await StorageService.getMoodHistory();
+        final count = history.length;
+        final badges = await StorageService.getBadges();
+        if (count >= 5 && !badges.contains('mood_5')) {
+          await StorageService.addBadge('mood_5');
+        }
+        if (count >= 20 && !badges.contains('mood_20')) {
+          await StorageService.addBadge('mood_20');
+        }
+      }
     }
   }
 

@@ -7,6 +7,7 @@ import '../../../core/widgets/animated_background.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/meditation_service.dart';
+import '../../../core/utils/storage_service.dart';
 
 class MeditationScreen extends StatefulWidget {
   const MeditationScreen({super.key});
@@ -74,8 +75,10 @@ class _MeditationScreenState extends State<MeditationScreen> {
       }
     });
 
-    _audioPlayer.onPlayerComplete.listen((_) {
+    _audioPlayer.onPlayerComplete.listen((_) async {
       if (mounted) {
+        // Capture trackId before clearing state
+        final trackId = _currentTrack?.id;
         setState(() {
           _isPlaying = false;
           _currentTrack = null;
@@ -83,10 +86,13 @@ class _MeditationScreenState extends State<MeditationScreen> {
         });
         // Mark completed in Firestore when a track finishes
         try {
-          final trackId = _currentTrack?.id;
           if (trackId != null) {
-            MeditationService(FirebaseFirestore.instance, FirebaseAuth.instance)
+            await MeditationService(FirebaseFirestore.instance, FirebaseAuth.instance)
                 .markCompleted(trackId, true);
+            final badges = await StorageService.getBadges();
+            if (!badges.contains('meditation_first')) {
+              await StorageService.addBadge('meditation_first');
+            }
           }
         } catch (_) {}
       }
@@ -137,16 +143,23 @@ class _MeditationScreenState extends State<MeditationScreen> {
   void _stopTrack() async {
     await _audioPlayer.stop();
     if (mounted) {
+      // Capture trackId before clearing state
+      final trackId = _currentTrack?.id;
       setState(() {
         _isPlaying = false;
         _currentTrack = null;
         _currentPosition = Duration.zero;
       });
       // Consider stop as completion for short practices
-      final trackId = _currentTrack?.id;
       if (trackId != null) {
-        MeditationService(FirebaseFirestore.instance, FirebaseAuth.instance)
+        await MeditationService(FirebaseFirestore.instance, FirebaseAuth.instance)
             .markCompleted(trackId, true);
+        try {
+          final badges = await StorageService.getBadges();
+          if (!badges.contains('meditation_first')) {
+            await StorageService.addBadge('meditation_first');
+          }
+        } catch (_) {}
       }
     }
   }
@@ -244,7 +257,7 @@ class _MeditationScreenState extends State<MeditationScreen> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             blurRadius: 15,
                             offset: const Offset(0, 5),
                           ),
@@ -443,7 +456,7 @@ class _NowPlayingSection extends StatelessWidget {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.2),
+                  color: AppColors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -466,7 +479,7 @@ class _NowPlayingSection extends StatelessWidget {
                     Text(
                       track.duration,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.white.withOpacity(0.8),
+                            color: AppColors.white.withValues(alpha: 0.8),
                           ),
                     ),
                   ],
@@ -493,7 +506,7 @@ class _NowPlayingSection extends StatelessWidget {
             children: [
               LinearProgressIndicator(
                 value: progress,
-                backgroundColor: AppColors.white.withOpacity(0.3),
+                backgroundColor: AppColors.white.withValues(alpha: 0.3),
                 valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                 minHeight: 6,
                 borderRadius: BorderRadius.circular(3),
@@ -505,13 +518,13 @@ class _NowPlayingSection extends StatelessWidget {
                   Text(
                     formatDuration(currentPosition),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.white.withOpacity(0.8),
+                          color: AppColors.white.withValues(alpha: 0.8),
                         ),
                   ),
                   Text(
                     formatDuration(totalDuration),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.white.withOpacity(0.8),
+                          color: AppColors.white.withValues(alpha: 0.8),
                         ),
                   ),
                 ],

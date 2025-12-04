@@ -104,6 +104,21 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
       setState(() {
         _streak = newStreak;
       });
+      try {
+        final badges = await StorageService.getBadges();
+        if (newStreak >= 7 && !badges.contains('streak_7')) {
+          await StorageService.addBadge('streak_7');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Badge earned: 7-Day Streak'), backgroundColor: AppColors.accent),
+          );
+        }
+        if (newStreak >= 30 && !badges.contains('streak_30')) {
+          await StorageService.addBadge('streak_30');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Badge earned: 30-Day Streak'), backgroundColor: AppColors.secondary),
+          );
+        }
+      } catch (_) {}
     }
   }
 

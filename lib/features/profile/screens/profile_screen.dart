@@ -133,8 +133,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               gradient: AppColors.primaryGradient,
                               shape: BoxShape.circle,
                               boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.3),
+                            BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.3),
                                   blurRadius: 20,
                                   offset: const Offset(0, 5),
                                 ),
@@ -350,7 +350,7 @@ class _AnalyticsSection extends StatelessWidget {
                         child: Container(
                           height: maxVal == 0 ? 4 : (moodLast7[i] / maxVal) * 100 + 4,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.7),
+                            color: AppColors.primary.withValues(alpha: 0.7),
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -396,7 +396,7 @@ class _ProgressRow extends StatelessWidget {
             value: value.clamp(0.0, 1.0),
             minHeight: 8,
             color: AppColors.primary,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
+            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
           ),
         ),
       ],
@@ -426,7 +426,7 @@ class _StatCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),

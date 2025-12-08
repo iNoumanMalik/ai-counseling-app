@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 import 'dart:async';
 
 final _breathingStateProvider = StateProvider<String>((ref) => 'ready');
@@ -83,7 +84,9 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
     final remaining = ref.watch(_remainingTimeProvider);
     final duration = ref.watch(_sessionDurationProvider);
 
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.breathingTitle),
       ),
@@ -203,6 +206,9 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
           ),
         ),
       ),
+    ),
+        const CounselingFloatingButton(),
+      ],
     );
   }
 }

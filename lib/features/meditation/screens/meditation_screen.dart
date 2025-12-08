@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/meditation_service.dart';
 import '../../../core/utils/storage_service.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 
 class MeditationScreen extends StatefulWidget {
   const MeditationScreen({super.key});
@@ -179,7 +180,9 @@ class _MeditationScreenState extends State<MeditationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.homeMeditation),
         actions: [
@@ -294,7 +297,10 @@ class _MeditationScreenState extends State<MeditationScreen> {
           ),
         ],
       ),
-    )));
+    ))),
+        const CounselingFloatingButton(),
+      ],
+    );
   }
 }
 

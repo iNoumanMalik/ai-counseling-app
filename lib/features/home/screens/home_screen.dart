@@ -6,6 +6,7 @@ import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../core/widgets/animated_bottom_nav.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 import '../../../core/utils/storage_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -72,7 +73,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       body: AnimatedBackground(
         child: SafeArea(
           child: Column(
@@ -210,6 +213,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
       bottomNavigationBar: const AnimatedBottomNav(currentIndex: 0),
+    ),
+        const CounselingFloatingButton(),
+      ],
     );
   }
 }

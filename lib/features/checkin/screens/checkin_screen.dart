@@ -5,6 +5,7 @@ import '../../../core/widgets/animated_background.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/utils/storage_service.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 
 class CheckinScreen extends StatefulWidget {
   const CheckinScreen({super.key});
@@ -169,7 +170,9 @@ class _CheckinScreenState extends State<CheckinScreen> {
   Widget build(BuildContext context) {
     final total = _questions.length;
     final isDone = _responses.length == total;
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       appBar: AppBar(title: const Text('MCQ Check-in')),
       body: AnimatedBackground(
         child: SafeArea(
@@ -229,6 +232,9 @@ class _CheckinScreenState extends State<CheckinScreen> {
           ),
         ),
       ),
+    ),
+        const CounselingFloatingButton(),
+      ],
     );
   }
 }

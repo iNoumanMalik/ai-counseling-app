@@ -15,6 +15,7 @@ import '../../../services/meditation_service.dart';
 import '../../../services/auth_service.dart';
 import '../../../core/utils/storage_service.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -163,7 +164,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       body: AnimatedBackground(
         child: SafeArea(
           child: SingleChildScrollView(
@@ -371,6 +374,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       bottomNavigationBar: const AnimatedBottomNav(currentIndex: 3),
+    ),
+        const CounselingFloatingButton(),
+      ],
     );
   }
 }

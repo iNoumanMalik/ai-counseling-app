@@ -9,6 +9,7 @@ import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../core/widgets/animated_bottom_nav.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 import '../../../services/habits_service.dart';
 import '../../../services/user_service.dart';
 
@@ -133,7 +134,9 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
   Widget build(BuildContext context) {
     final habits = ref.watch(_habitsProvider);
 
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       body: Stack(
         children: [
           AnimatedBackground(
@@ -214,6 +217,9 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         ],
       ),
       bottomNavigationBar: const AnimatedBottomNav(currentIndex: 2),
+    ),
+        const CounselingFloatingButton(),
+      ],
     );
   }
 }

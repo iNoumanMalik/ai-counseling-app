@@ -72,7 +72,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
       final service = JournalService(FirebaseFirestore.instance, FirebaseAuth.instance);
       await service.addOrUpdateEntry(
         id: entry['id'] as String,
-        title: entry['title'] as String?,
+        title: entry['title'],
         content: entry['content'] as String,
         date: entry['date'] as String,
       );

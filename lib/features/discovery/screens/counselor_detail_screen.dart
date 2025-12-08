@@ -8,8 +8,6 @@ import '../../../core/widgets/animated_background.dart';
 import '../../../data/dummy/counselors_data.dart';
 import '../../../data/models/counselor.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/counselor_service.dart';
 import '../../../core/utils/storage_service.dart';
 

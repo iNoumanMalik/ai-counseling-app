@@ -19,7 +19,7 @@ class BreathingScreen extends ConsumerStatefulWidget {
 
 class _BreathingScreenState extends ConsumerState<BreathingScreen> {
   Timer? _timer;
-  int _cycleDuration = 6; // seconds for one breath cycle
+  final int _cycleDuration = 6; // seconds for one breath cycle
   int _currentCycleStep = 0;
   bool _isRunning = false;
 

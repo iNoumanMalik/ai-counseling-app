@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/colors.dart';
-import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 
 class WorksheetsScreen extends StatelessWidget {

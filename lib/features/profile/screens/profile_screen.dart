@@ -14,6 +14,7 @@ import '../../../services/habits_service.dart';
 import '../../../services/meditation_service.dart';
 import '../../../services/auth_service.dart';
 import '../../../core/utils/storage_service.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,6 +31,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<int> _moodLast7 = List.filled(7, 0);
   double _habitsCompletion = 0.0;
   double _meditationCompletion = 0.0;
+  List<Map<String, dynamic>> _checkinsLast7 = const [];
+  List<int> _habitLast7 = List.filled(7, 0);
 
   @override
   void initState() {
@@ -72,6 +75,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (_) {
       meditations = {};
     }
+    List<Map<String, dynamic>> checkins = [];
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        final qs = await FirebaseFirestore.instance
+            .collection('checkins')
+            .doc(uid)
+            .collection('entries')
+            .orderBy('timestamp', descending: true)
+            .get();
+        checkins = qs.docs.map((d) => d.data()).toList();
+      }
+    } catch (_) {
+      try {
+        checkins = await StorageService.getCheckins();
+      } catch (_) {}
+    }
 
     final fallbackName = await StorageService.getUserName();
     final fallbackStreak = await StorageService.getHabitStreak();
@@ -91,6 +111,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
 
+    final checkinsFiltered = <Map<String, dynamic>>[];
+    for (final c in checkins) {
+      final s = (c['timestamp'] as String?) ?? (c['date'] as String?);
+      if (s == null) continue;
+      DateTime? dt;
+      try { dt = DateTime.parse(s); } catch (_) { dt = null; }
+      if (dt == null) continue;
+      final day = DateTime(dt.year, dt.month, dt.day);
+      final diff = now.difference(day).inDays;
+      if (diff >= 0 && diff < 7) {
+        checkinsFiltered.add(c);
+      }
+    }
+
+    final habitLog = await StorageService.getHabitLog();
+    final habitBuckets = List<int>.filled(7, 0);
+    for (final h in habitLog) {
+      final s = (h['date'] as String?);
+      if (s == null) continue;
+      DateTime? dt;
+      try { dt = DateTime.parse(s); } catch (_) { dt = null; }
+      if (dt == null) continue;
+      final day = DateTime(dt.year, dt.month, dt.day);
+      final diff = now.difference(day).inDays;
+      if (diff >= 0 && diff < 7) {
+        habitBuckets[6 - diff] += 1;
+      }
+    }
+
     int habitsTotal = habits.length;
     int habitsDone = habits.values.where((v) => v).length;
     double habitsPct = habitsTotal == 0 ? 0.0 : habitsDone / habitsTotal;
@@ -107,6 +156,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _moodLast7 = buckets;
       _habitsCompletion = habitsPct;
       _meditationCompletion = medPct;
+      _checkinsLast7 = checkinsFiltered;
+      _habitLast7 = habitBuckets;
     });
   }
 
@@ -158,6 +209,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
+
+                Text(
+                  'Weekly Insights',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ).animate().fadeIn(delay: 250.ms, duration: 400.ms),
+                const SizedBox(height: 12),
+                _InsightsSection(
+                  checkins: _checkinsLast7,
+                  journals: _journalCount,
+                  habitsCompletion: _habitsCompletion,
+                  moodLast7: _moodLast7,
+                  habitLast7: _habitLast7,
+                )
+                    .animate()
+                    .fadeIn(delay: 300.ms, duration: 400.ms)
+                    .slideY(begin: 0.1, end: 0),
 
                 Text(
                   'Graphs & Analytics',
@@ -364,6 +431,197 @@ class _AnalyticsSection extends StatelessWidget {
   }
 }
 
+class _InsightsSection extends StatelessWidget {
+  final List<Map<String, dynamic>> checkins;
+  final int journals;
+  final double habitsCompletion;
+  final List<int> moodLast7;
+  final List<int> habitLast7;
+
+  const _InsightsSection({
+    required this.checkins,
+    required this.journals,
+    required this.habitsCompletion,
+    required this.moodLast7,
+    required this.habitLast7,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    int low = 0, moderate = 0, high = 0;
+    int goodSleep = 0, poorSleep = 0;
+
+    for (final c in checkins) {
+      final cat = (c['category'] as String?) ?? '';
+      if (cat == 'low') {
+        low++;
+      } else if (cat == 'moderate') {
+        moderate++;
+      } else if (cat == 'high') {
+        high++;
+      }
+      final responses = (c['responses'] as List?)?.map((e) => e.toString()).toList() ?? const [];
+      if (responses.length >= 3) {
+        final sleep = responses[2].toLowerCase();
+        if (sleep.contains('good') || sleep.contains('excellent')) {
+          goodSleep++;
+        } else if (sleep.contains('poor')) {
+          poorSleep++;
+        }
+      }
+    }
+
+    final total = (low + moderate + high).clamp(1, 999);
+    final lowPct = low / total;
+    final modPct = moderate / total;
+    final highPct = high / total;
+
+    return Column(
+      children: [
+        _StressPieCard(low: lowPct, moderate: modPct, high: highPct),
+        const SizedBox(height: 12),
+        _HabitsGaugeCard(completion: habitsCompletion),
+        const SizedBox(height: 12),
+        _SleepBarCard(good: goodSleep, poor: poorSleep),
+        const SizedBox(height: 12),
+        _MoodHabitsComparisonCard(moodLast7: moodLast7, habitLast7: habitLast7),
+      ],
+    );
+  }
+}
+
+class _StressPieCard extends StatelessWidget {
+  final double low;
+  final double moderate;
+  final double high;
+  const _StressPieCard({required this.low, required this.moderate, required this.high});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Stress Distribution', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 160,
+              child: PieChart(
+                PieChartData(
+                  sectionsSpace: 2,
+                  centerSpaceRadius: 40,
+                  sections: [
+                    PieChartSectionData(value: (low * 100), color: AppColors.primaryMintGreen, title: '${(low * 100).round()}%'),
+                    PieChartSectionData(value: (moderate * 100), color: AppColors.lavender, title: '${(moderate * 100).round()}%'),
+                    PieChartSectionData(value: (high * 100), color: AppColors.error, title: '${(high * 100).round()}%'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HabitsGaugeCard extends StatelessWidget {
+  final double completion;
+  const _HabitsGaugeCard({required this.completion});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Habit Completion', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: completion.clamp(0.0, 1.0),
+                      minHeight: 10,
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text('${(completion * 100).round()}% this week', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.mediumGray)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SleepBarCard extends StatelessWidget {
+  final int good;
+  final int poor;
+  const _SleepBarCard({required this.good, required this.poor});
+
+  @override
+  Widget build(BuildContext context) {
+    final maxVal = [good, poor].reduce((a, b) => a > b ? a : b).clamp(1, 999);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Sleep vs Stress', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _sleepBar('Good', good / maxVal, AppColors.secondary)),
+                const SizedBox(width: 8),
+                Expanded(child: _sleepBar('Poor', poor / maxVal, AppColors.error)),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text('Based on weekly check-ins', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.mediumGray)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sleepBar(String label, double pct, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label),
+            Text('${(pct * 100).round()}%'),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: pct.clamp(0.0, 1.0),
+            minHeight: 8,
+            backgroundColor: color.withValues(alpha: 0.1),
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ProgressRow extends StatelessWidget {
   final String label;
   final double value;
@@ -503,5 +761,58 @@ class _MenuItem extends StatelessWidget {
           end: const Offset(1, 1),
           duration: 300.ms,
         );
+  }
+}
+class _MoodHabitsComparisonCard extends StatelessWidget {
+  final List<int> moodLast7;
+  final List<int> habitLast7;
+  const _MoodHabitsComparisonCard({required this.moodLast7, required this.habitLast7});
+
+  @override
+  Widget build(BuildContext context) {
+    final maxMood = moodLast7.isEmpty ? 0 : moodLast7.reduce((a,b)=>a>b?a:b);
+    final maxHabit = habitLast7.isEmpty ? 0 : habitLast7.reduce((a,b)=>a>b?a:b);
+    final maxVal = [maxMood, maxHabit, 1].reduce((a,b)=>a>b?a:b).toDouble();
+    final groups = <BarChartGroupData>[];
+    for (int i = 0; i < 7; i++) {
+      final m = (i < moodLast7.length) ? moodLast7[i].toDouble() : 0.0;
+      final h = (i < habitLast7.length) ? habitLast7[i].toDouble() : 0.0;
+      groups.add(
+        BarChartGroupData(x: i, barsSpace: 6, barRods: [
+          BarChartRodData(toY: m, color: AppColors.primary, width: 8, borderRadius: BorderRadius.circular(4)),
+          BarChartRodData(toY: h, color: AppColors.secondary, width: 8, borderRadius: BorderRadius.circular(4)),
+        ]),
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Mood vs Habits (7 days)', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 180,
+              child: BarChart(
+                BarChartData(
+                  gridData: FlGridData(show: false),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 28)),
+                    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  minY: 0,
+                  maxY: maxVal,
+                  barGroups: groups,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

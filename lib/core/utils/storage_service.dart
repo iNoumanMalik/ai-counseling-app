@@ -14,6 +14,7 @@ class StorageService {
   static const String _keySavedCounselors = 'saved_counselors';
   static const String _keyNotificationsEnabled = 'notifications_enabled';
   static const String _keyCheckins = 'checkins';
+  static const String _keyHabitLog = 'habit_log';
 
   static Future<SharedPreferences> get _prefs async =>
       await SharedPreferences.getInstance();
@@ -203,6 +204,25 @@ class StorageService {
     final List<Map<String, dynamic>> items = await getCheckins();
     items.add(entry);
     await prefs.setString(_keyCheckins, jsonEncode(items));
+  }
+
+  static Future<List<Map<String, dynamic>>> getHabitLog() async {
+    final prefs = await _prefs;
+    final String? json = prefs.getString(_keyHabitLog);
+    if (json == null) return [];
+    try {
+      final List<dynamic> decoded = jsonDecode(json);
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<void> addHabitLogEntry({required String habitId, required String date}) async {
+    final prefs = await _prefs;
+    final List<Map<String, dynamic>> items = await getHabitLog();
+    items.add({'habitId': habitId, 'date': date});
+    await prefs.setString(_keyHabitLog, jsonEncode(items));
   }
 }
 

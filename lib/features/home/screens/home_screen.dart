@@ -10,6 +10,7 @@ import '../../../core/utils/storage_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/user_service.dart';
+import '../../../services/mood_service.dart';
 import '../widgets/mood_selector.dart';
 import '../widgets/quick_action_card.dart';
 
@@ -23,6 +24,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String? _userName;
   String? _lastMood;
+  int? _lastIntensity;
+  List<String> _lastTags = const [];
 
   @override
   void initState() {
@@ -40,6 +43,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         _userName = (data?['name'] as String?) ?? 'Friend';
         _lastMood = (data?['lastMood'] as String?) ?? _lastMood;
       });
+      try {
+        final history = await ref.read(moodServiceProvider).getMoodHistory();
+        if (history.isNotEmpty) {
+          final latest = history.first;
+          setState(() {
+            _lastIntensity = latest['intensity'] as int?;
+            _lastTags = (latest['tags'] as List?)?.map((e)=>e.toString()).toList() ?? const [];
+          });
+        }
+      } catch (_) {
+        final local = await StorageService.getMoodHistory();
+        if (local.isNotEmpty) {
+          final latest = local.first;
+          setState(() {
+            _lastIntensity = latest['intensity'] as int?;
+            _lastTags = (latest['tags'] as List?)?.map((e)=>e.toString()).toList() ?? const [];
+          });
+        }
+      }
     } catch (_) {
       final local = await StorageService.getUserName();
       setState(() {
@@ -86,6 +108,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             )
                             .animate()
                             .fadeIn(delay: 150.ms, duration: 400.ms)
+                            .slideY(begin: 0.1, end: 0),
+
+                      if (_lastMood != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: _TodayPlanCard(
+                            mood: _lastMood!,
+                            intensity: _lastIntensity,
+                            tags: _lastTags,
+                            onNavigate: (route) => context.push(route),
+                          ),
+                        )
+                            .animate()
+                            .fadeIn(delay: 200.ms, duration: 400.ms)
                             .slideY(begin: 0.1, end: 0),
 
                       // Mood selector
@@ -228,4 +264,70 @@ class _SuggestionCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _TodayPlanCard extends StatelessWidget {
+  final String mood;
+  final int? intensity;
+  final List<String> tags;
+  final void Function(String) onNavigate;
+  const _TodayPlanCard({
+    required this.mood,
+    required this.intensity,
+    required this.tags,
+    required this.onNavigate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final List<_PlanItem> items = [];
+    if ((mood == AppStrings.moodAnxious) || (intensity != null && intensity! >= 4)) {
+      items.add(_PlanItem('Breathing 3 min', Icons.air_outlined, '/breathing'));
+      items.add(_PlanItem('Meditation 5 min', Icons.self_improvement_outlined, '/meditation'));
+    } else {
+      items.add(_PlanItem('Journal Prompt', Icons.edit_note_outlined, '/journal'));
+      items.add(_PlanItem('Worksheet', Icons.menu_book_outlined, '/worksheets'));
+    }
+    if (tags.contains('sleep')) {
+      items.add(_PlanItem('Wind-down Breathing', Icons.nightlight_round, '/breathing'));
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Today Plan', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: items.map((i) => ElevatedButton.icon(
+              onPressed: () => onNavigate(i.route),
+              icon: Icon(i.icon),
+              label: Text(i.title),
+            )).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlanItem {
+  final String title;
+  final IconData icon;
+  final String route;
+  _PlanItem(this.title, this.icon, this.route);
 }

@@ -6,12 +6,16 @@ class MoodEntry {
   final String mood;
   final DateTime date;
   final String? note;
+  final int? intensity;
+  final List<String>? tags;
 
   MoodEntry({
     required this.id,
     required this.mood,
     required this.date,
     this.note,
+    this.intensity,
+    this.tags,
   });
 
   Map<String, dynamic> toJson() {
@@ -20,6 +24,8 @@ class MoodEntry {
       'mood': mood,
       'date': date.toIso8601String(),
       'note': note,
+      'intensity': intensity,
+      'tags': tags,
     };
   }
 
@@ -29,6 +35,8 @@ class MoodEntry {
       mood: json['mood'] as String,
       date: DateTime.parse(json['date'] as String),
       note: json['note'] as String?,
+      intensity: json['intensity'] as int?,
+      tags: (json['tags'] as List?)?.map((e) => e.toString()).toList(),
     );
   }
 

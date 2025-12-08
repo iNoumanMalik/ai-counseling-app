@@ -13,6 +13,9 @@ class HabitsService {
   DocumentReference<Map<String, dynamic>> get _userRef =>
       _db.collection('users').doc(_uid);
 
+  CollectionReference<Map<String, dynamic>> get _habitLogCol =>
+      _db.collection('users').doc(_uid).collection('habitLog');
+
   Future<Map<String, bool>> getHabits() async {
     final doc = await _userRef.get();
     final data = doc.data();
@@ -24,6 +27,13 @@ class HabitsService {
     await _userRef.set({
       'habits': {key: value},
     }, SetOptions(merge: true));
+  }
+
+  Future<void> logHabitCompletion(String key) async {
+    await _habitLogCol.add({
+      'habitId': key,
+      'date': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<void> setAll(Map<String, bool> habits) async {

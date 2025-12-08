@@ -120,6 +120,13 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         }
       } catch (_) {}
     }
+
+    if (completed) {
+      try {
+        await HabitsService(FirebaseFirestore.instance, FirebaseAuth.instance).logHabitCompletion(habitId);
+      } catch (_) {}
+      await StorageService.addHabitLogEntry(habitId: habitId, date: DateTime.now().toIso8601String());
+    }
   }
 
   @override

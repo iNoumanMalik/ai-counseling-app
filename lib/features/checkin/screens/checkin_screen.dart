@@ -240,9 +240,16 @@ class _QuestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.white,
+    return Container(
       margin: const EdgeInsets.only(top: 8),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.lightGray300),
+        boxShadow: [
+          BoxShadow(color: AppColors.glassShadow, blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -294,7 +301,7 @@ class _QuestionCard extends StatelessWidget {
                     selected: false,
                     onSelected: (_) => onSelect(i),
                     backgroundColor: AppColors.lightGray200,
-                    selectedColor: AppColors.primary.withValues(alpha: 0.15),
+                    selectedColor: AppColors.primary.withValues(alpha: 0.2),
                     labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.dark900),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                   ),
@@ -351,12 +358,9 @@ class _Summary extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: categoryColor.withValues(alpha: 0.4)),
             boxShadow: [
-              BoxShadow(
-                color: categoryColor.withValues(alpha: 0.15),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
+              BoxShadow(color: AppColors.glassShadow, blurRadius: 12, offset: const Offset(0, 4)),
             ],
           ),
           child: Row(
@@ -365,7 +369,7 @@ class _Summary extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
+                  color: categoryColor,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(categoryIcon, color: AppColors.white),

@@ -498,7 +498,13 @@ class _StressPieCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.lightGray300),
+        boxShadow: [BoxShadow(color: AppColors.glassShadow, blurRadius: 10, offset: const Offset(0, 4))],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -513,8 +519,8 @@ class _StressPieCard extends StatelessWidget {
                   sectionsSpace: 2,
                   centerSpaceRadius: 40,
                   sections: [
-                    PieChartSectionData(value: (low * 100), color: AppColors.primaryMintGreen, title: '${(low * 100).round()}%'),
-                    PieChartSectionData(value: (moderate * 100), color: AppColors.lavender, title: '${(moderate * 100).round()}%'),
+                    PieChartSectionData(value: (low * 100), color: AppColors.primary, title: '${(low * 100).round()}%'),
+                    PieChartSectionData(value: (moderate * 100), color: AppColors.accent, title: '${(moderate * 100).round()}%'),
                     PieChartSectionData(value: (high * 100), color: AppColors.error, title: '${(high * 100).round()}%'),
                   ],
                 ),
@@ -533,7 +539,13 @@ class _HabitsGaugeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.lightGray300),
+        boxShadow: [BoxShadow(color: AppColors.glassShadow, blurRadius: 10, offset: const Offset(0, 4))],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -549,7 +561,7 @@ class _HabitsGaugeCard extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: completion.clamp(0.0, 1.0),
                       minHeight: 10,
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                      backgroundColor: AppColors.lightGray200,
                       color: AppColors.primary,
                     ),
                   ),
@@ -573,7 +585,13 @@ class _SleepBarCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxVal = [good, poor].reduce((a, b) => a > b ? a : b).clamp(1, 999);
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.lightGray300),
+        boxShadow: [BoxShadow(color: AppColors.glassShadow, blurRadius: 10, offset: const Offset(0, 4))],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -583,7 +601,7 @@ class _SleepBarCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _sleepBar('Good', good / maxVal, AppColors.secondary)),
+                Expanded(child: _sleepBar('Good', good / maxVal, AppColors.primary)),
                 const SizedBox(width: 8),
                 Expanded(child: _sleepBar('Poor', poor / maxVal, AppColors.error)),
               ],
@@ -785,7 +803,13 @@ class _MoodHabitsComparisonCard extends StatelessWidget {
       );
     }
 
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.lightGray300),
+        boxShadow: [BoxShadow(color: AppColors.glassShadow, blurRadius: 10, offset: const Offset(0, 4))],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -806,7 +830,12 @@ class _MoodHabitsComparisonCard extends StatelessWidget {
                   ),
                   minY: 0,
                   maxY: maxVal,
-                  barGroups: groups,
+                  barGroups: groups.map((g) {
+                    return BarChartGroupData(x: g.x, barsSpace: g.barsSpace, barRods: [
+                      BarChartRodData(toY: g.barRods[0].toY, color: AppColors.primary, width: 8, borderRadius: BorderRadius.circular(4)),
+                      BarChartRodData(toY: g.barRods[1].toY, color: AppColors.secondary, width: 8, borderRadius: BorderRadius.circular(4)),
+                    ]);
+                  }).toList(),
                 ),
               ),
             ),

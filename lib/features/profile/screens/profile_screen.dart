@@ -246,15 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _MenuItem(
                       icon: Icons.history_outlined,
                       label: AppStrings.profileMoodHistory,
-                      onTap: () {
-                        // TODO: Navigate to mood history
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Mood history coming soon'),
-                            backgroundColor: AppColors.primary,
-                          ),
-                        );
-                      },
+                      onTap: () => context.push('/mood/history'),
                     )
                     .animate()
                     .fadeIn(delay: 700.ms, duration: 400.ms)

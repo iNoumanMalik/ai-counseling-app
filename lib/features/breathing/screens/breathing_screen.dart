@@ -152,35 +152,35 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
                     // Duration selector
                     if (!_isRunning) ...[
                       Text(
-                        '',
+                        'Select duration',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 16),
-                      // Wrap(
-                      //   spacing: 12,
-                      //   runSpacing: 12,
-                      //   alignment: WrapAlignment.center,
-                      //   children: [
-                      //     _DurationButton(
-                      //       label: AppStrings.breathingSession1Min,
-                      //       seconds: 60,
-                      //       isSelected: duration == 60,
-                      //       onTap: () => _setDuration(60),
-                      //     ),
-                      //     _DurationButton(
-                      //       label: AppStrings.breathingSession3Min,
-                      //       seconds: 180,
-                      //       isSelected: duration == 180,
-                      //       onTap: () => _setDuration(180),
-                      //     ),
-                      //     _DurationButton(
-                      //       label: AppStrings.breathingSession5Min,
-                      //       seconds: 300,
-                      //       isSelected: duration == 300,
-                      //       onTap: () => _setDuration(300),
-                      //     ),
-                      //   ],
-                      // ),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          _DurationButton(
+                            label: AppStrings.breathingSession1Min,
+                            seconds: 60,
+                            isSelected: duration == 60,
+                            onTap: () => _setDuration(60),
+                          ),
+                          _DurationButton(
+                            label: AppStrings.breathingSession3Min,
+                            seconds: 180,
+                            isSelected: duration == 180,
+                            onTap: () => _setDuration(180),
+                          ),
+                          _DurationButton(
+                            label: AppStrings.breathingSession5Min,
+                            seconds: 300,
+                            isSelected: duration == 300,
+                            onTap: () => _setDuration(300),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 32),
                     ],
 
@@ -274,28 +274,18 @@ class _DurationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.mediumGray,
-            width: 2,
-          ),
-        ),
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: isSelected ? AppColors.white : AppColors.darkText,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-        ),
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => onTap(),
+      backgroundColor: AppColors.lightGray200,
+      selectedColor: AppColors.primary.withValues(alpha: 0.15),
+      labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: isSelected ? AppColors.primary : AppColors.dark900,
       ),
-    )
-        .animate(target: isSelected ? 1 : 0)
-        .scale(duration: 200.ms);
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+    );
   }
 }
+
+ 

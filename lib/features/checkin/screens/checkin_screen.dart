@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/colors.dart';
 import '../../../core/widgets/animated_background.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/utils/storage_service.dart';
 
 class CheckinScreen extends StatefulWidget {
   const CheckinScreen({super.key});
@@ -97,6 +100,51 @@ class _CheckinScreenState extends State<CheckinScreen> {
 
   final List<String> _responses = [];
 
+  Future<void> _saveResult() async {
+    int total = 0;
+    for (int i = 0; i < _questions.length; i++) {
+      final resp = _responses[i];
+      final opt = _questions[i].options.firstWhere(
+        (o) => o.label == resp,
+        orElse: () => _questions[i].options.first,
+      );
+      total += opt.points;
+    }
+    final max = _questions.length * 3;
+    String category;
+    if (total <= (max * 0.33).round()) {
+      category = 'low';
+    } else if (total <= (max * 0.66).round()) {
+      category = 'moderate';
+    } else {
+      category = 'high';
+    }
+
+    final payload = {
+      'timestamp': DateTime.now().toIso8601String(),
+      'total': total,
+      'max': max,
+      'category': category,
+      'responses': _responses,
+    };
+
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        final col = FirebaseFirestore.instance.collection('checkins').doc(uid).collection('entries');
+        await col.add(payload);
+      } else {
+        throw Exception('no user');
+      }
+    } catch (_) {
+      await _saveCheckinLocal(payload);
+    }
+  }
+
+  Future<void> _saveCheckinLocal(Map<String, dynamic> entry) async {
+    await StorageService.saveCheckinEntry(entry);
+  }
+
   void _selectOption(int optionIndex) {
     final selected = _questions[_index].options[optionIndex].label;
     _responses.add(selected);
@@ -106,6 +154,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
       });
     } else {
       setState(() {});
+      _saveResult();
     }
   }
 

@@ -13,6 +13,7 @@ class StorageService {
   static const String _keyBadges = 'badges';
   static const String _keySavedCounselors = 'saved_counselors';
   static const String _keyNotificationsEnabled = 'notifications_enabled';
+  static const String _keyCheckins = 'checkins';
 
   static Future<SharedPreferences> get _prefs async =>
       await SharedPreferences.getInstance();
@@ -183,6 +184,25 @@ class StorageService {
   static Future<void> setNotificationsEnabled(bool enabled) async {
     final prefs = await _prefs;
     await prefs.setBool(_keyNotificationsEnabled, enabled);
+  }
+
+  static Future<List<Map<String, dynamic>>> getCheckins() async {
+    final prefs = await _prefs;
+    final String? json = prefs.getString(_keyCheckins);
+    if (json == null) return [];
+    try {
+      final List<dynamic> decoded = jsonDecode(json);
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<void> saveCheckinEntry(Map<String, dynamic> entry) async {
+    final prefs = await _prefs;
+    final List<Map<String, dynamic>> items = await getCheckins();
+    items.add(entry);
+    await prefs.setString(_keyCheckins, jsonEncode(items));
   }
 }
 

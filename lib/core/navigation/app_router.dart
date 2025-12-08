@@ -17,6 +17,7 @@ import '../../features/checkin/screens/checkin_screen.dart';
 import '../../features/onboarding/screens/onboarding_complete_screen.dart';
 import '../../features/auth/screens/sign_in_screen.dart';
 import '../../features/auth/screens/sign_up_screen.dart';
+import '../../features/mood/screens/mood_history_screen.dart';
 
 /// App routing configuration - routes only (no GoRouter instance)
   final appRoutes = [
@@ -126,6 +127,11 @@ import '../../features/auth/screens/sign_up_screen.dart';
       path: '/sos',
       name: 'sos',
       builder: (context, state) => const SosScreen(),
+    ),
+    GoRoute(
+      path: '/mood/history',
+      name: 'mood-history',
+      builder: (context, state) => const MoodHistoryScreen(),
     ),
   ];
 

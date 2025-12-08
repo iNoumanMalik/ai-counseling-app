@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 class CounselorChatScreen extends StatefulWidget {
   const CounselorChatScreen({super.key});
@@ -13,7 +15,7 @@ class _CounselorChatScreenState extends State<CounselorChatScreen> {
   final List<Map<String, String>> messages = [];
   final TextEditingController _controller = TextEditingController();
   bool _loading = false;
-  static const String _apiKey = "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";
+  static String _apiKey = dotenv.env['OPENAI_KEY'] ?? '';
 
   Future<void> sendMessage(String text) async {
     setState(() { _loading = true; });

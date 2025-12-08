@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 class ChatGPTService {
-  static const String _apiKey = "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";
+  static String _apiKey = dotenv.env['OPENAI_KEY'] ?? '';
   static const String _url =
       "https://api.openai.com/v1/chat/completions";
 

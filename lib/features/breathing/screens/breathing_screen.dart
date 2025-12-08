@@ -23,6 +23,11 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
   final int _cycleDuration = 6; // seconds for one breath cycle
   int _currentCycleStep = 0;
   bool _isRunning = false;
+  String _formatMMSS(int seconds) {
+    final m = (seconds ~/ 60).toString().padLeft(2, '0');
+    final s = (seconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
 
   @override
   void dispose() {
@@ -71,6 +76,9 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
     ref.read(_breathingStateProvider.notifier).state = 'ready';
     ref.read(_remainingTimeProvider.notifier).state =
         ref.read(_sessionDurationProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Breathing session completed')),
+    );
   }
 
   void _setDuration(int seconds) {
@@ -133,15 +141,27 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
                       const SizedBox(height: 16),
 
                       // Timer
-                      if (_isRunning)
+                      if (_isRunning) ...[
                         Text(
-                          '${remaining}s remaining',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppColors.mediumGray,
+                          _formatMMSS(remaining),
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: AppColors.dark900,
+                                fontWeight: FontWeight.w600,
                               ),
                         )
                             .animate()
                             .fadeIn(duration: 300.ms),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: 180,
+                          child: LinearProgressIndicator(
+                            value: remaining / duration,
+                            minHeight: 6,
+                            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

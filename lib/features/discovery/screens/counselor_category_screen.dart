@@ -5,6 +5,7 @@ import '../../../config/colors.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../data/dummy/counselors_data.dart';
 import '../widgets/counselor_card.dart';
+import '../../../core/widgets/webview_modal.dart';
 
 class CounselorCategoryScreen extends StatelessWidget {
   final String category;
@@ -22,6 +23,21 @@ class CounselorCategoryScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_rounded),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Marham',
+            icon: const Icon(Icons.calendar_today_outlined),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => const WebViewModal(
+                  url: 'https://www.marham.pk/doctors/psychologist',
+                  title: 'Marham',
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: AnimatedBackground(
         child: counselors.isEmpty

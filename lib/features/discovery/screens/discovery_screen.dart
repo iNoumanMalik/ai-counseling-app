@@ -6,6 +6,7 @@ import '../../../core/widgets/animated_background.dart';
 import '../../../core/widgets/animated_bottom_nav.dart';
 import '../../../data/dummy/counselors_data.dart';
 import '../widgets/category_card.dart';
+import '../../../core/widgets/webview_modal.dart';
 
 class DiscoveryScreen extends StatelessWidget {
   const DiscoveryScreen({super.key});
@@ -64,7 +65,13 @@ class DiscoveryScreen extends StatelessWidget {
                         return CategoryCard(
                           category: category,
                           onTap: () {
-                            context.push('/discovery/category/$category');
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => const WebViewModal(
+                                url: 'https://www.marham.pk/doctors/psychologist',
+                                title: 'Marham',
+                              ),
+                            );
                           },
                         )
                             .animate(delay: (index * 50).ms)

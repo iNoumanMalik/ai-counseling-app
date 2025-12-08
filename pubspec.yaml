@@ -67,6 +67,7 @@ dependencies:
   # UUID generator
   uuid: ^4.5.1
   flutter_dotenv: ^6.0.0
+  webview_flutter: ^4.13.0
   
   # HTTP for future integrations (placeholder)
   # http: ^1.2.2  # TODO: Add when backend integration is needed

@@ -16,6 +16,9 @@ class HabitsService {
   CollectionReference<Map<String, dynamic>> get _habitLogCol =>
       _db.collection('users').doc(_uid).collection('habitLog');
 
+  CollectionReference<Map<String, dynamic>> get _habitDefsCol =>
+      _db.collection('users').doc(_uid).collection('habitDefs');
+
   Future<Map<String, bool>> getHabits() async {
     final doc = await _userRef.get();
     final data = doc.data();
@@ -36,8 +39,24 @@ class HabitsService {
     });
   }
 
-  Future<void> setAll(Map<String, bool> habits) async {
-    await _userRef.set({'habits': habits}, SetOptions(merge: true));
+  Future<List<Map<String, dynamic>>> listHabitDefs() async {
+    final qs = await _habitDefsCol.get();
+    return qs.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+  }
+
+  Future<void> addHabitDef({required String id, required String label, required int iconCodePoint}) async {
+    await _habitDefsCol.doc(id).set({
+      'label': label,
+      'icon': iconCodePoint,
+    });
+  }
+
+  Future<void> deleteHabitDef(String id) async {
+    await _habitDefsCol.doc(id).delete();
+  }
+
+  Future<void> removeHabitKey(String id) async {
+    await _userRef.update({'habits.$id': FieldValue.delete()});
   }
 }
 

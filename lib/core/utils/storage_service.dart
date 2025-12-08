@@ -15,6 +15,8 @@ class StorageService {
   static const String _keyNotificationsEnabled = 'notifications_enabled';
   static const String _keyCheckins = 'checkins';
   static const String _keyHabitLog = 'habit_log';
+  static const String _keyHabitDefs = 'habit_defs';
+  static const String _keyHabitsLastReset = 'habits_last_reset';
 
   static Future<SharedPreferences> get _prefs async =>
       await SharedPreferences.getInstance();
@@ -119,6 +121,43 @@ class StorageService {
       'date': DateTime.now().toIso8601String(),
     };
     await prefs.setString(_keyHabits, jsonEncode(habits));
+  }
+
+  static Future<List<Map<String, dynamic>>> getHabitDefs() async {
+    final prefs = await _prefs;
+    final String? json = prefs.getString(_keyHabitDefs);
+    if (json == null) return [];
+    try {
+      final List<dynamic> decoded = jsonDecode(json);
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<void> saveHabitDef(Map<String, dynamic> def) async {
+    final prefs = await _prefs;
+    final List<Map<String, dynamic>> defs = await getHabitDefs();
+    defs.removeWhere((d) => d['id'] == def['id']);
+    defs.add(def);
+    await prefs.setString(_keyHabitDefs, jsonEncode(defs));
+  }
+
+  static Future<void> deleteHabitDef(String id) async {
+    final prefs = await _prefs;
+    final List<Map<String, dynamic>> defs = await getHabitDefs();
+    defs.removeWhere((d) => d['id'] == id);
+    await prefs.setString(_keyHabitDefs, jsonEncode(defs));
+  }
+
+  static Future<String?> getHabitsLastReset() async {
+    final prefs = await _prefs;
+    return prefs.getString(_keyHabitsLastReset);
+  }
+
+  static Future<void> setHabitsLastReset(String isoDate) async {
+    final prefs = await _prefs;
+    await prefs.setString(_keyHabitsLastReset, isoDate);
   }
 
   // Streaks

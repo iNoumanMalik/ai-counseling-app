@@ -410,7 +410,7 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         label: const Text('Add'),
       ),
     ),
-        const CounselingFloatingButton(),
+        // const CounselingFloatingButton(),
       ],
     );
   }

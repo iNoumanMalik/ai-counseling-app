@@ -76,78 +76,72 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Stack(
       children: [
         Scaffold(
-      body: AnimatedBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
+          body: AnimatedBackground(
+            child: SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
 
-                      // Greeting
-                      Text(
+                          // Greeting
+                          Text(
                             AppStrings.homeGreeting.replaceAll(
                               '{name}',
                               _userName ?? 'Friend',
                             ),
-                            style: Theme.of(context).textTheme.displaySmall,
+                            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 28,
+                            ),
                           )
                           .animate()
                           .fadeIn(duration: 400.ms)
                           .slideX(begin: -0.2, end: 0),
-                      const SizedBox(height: 32),
+                          const SizedBox(height: 24),
 
-                      if (_lastMood != null)
-                        Padding(
-                              padding: const EdgeInsets.only(bottom: 20),
-                              child: _SuggestionCard(
-                                lastMood: _lastMood!,
-                                onNavigate: (route) => context.push(route),
-                              ),
+                          // Combined Personalized Card
+                          if (_lastMood != null)
+                            _PersonalizedInsightsCard(
+                              mood: _lastMood!,
+                              intensity: _lastIntensity,
+                              tags: _lastTags,
+                              onNavigate: (route) => context.push(route),
                             )
-                            .animate()
-                            .fadeIn(delay: 150.ms, duration: 400.ms)
-                            .slideY(begin: 0.1, end: 0),
-
-                      if (_lastMood != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: _TodayPlanCard(
-                            mood: _lastMood!,
-                            intensity: _lastIntensity,
-                            tags: _lastTags,
-                            onNavigate: (route) => context.push(route),
-                          ),
-                        )
                             .animate()
                             .fadeIn(delay: 200.ms, duration: 400.ms)
                             .slideY(begin: 0.1, end: 0),
+                          const SizedBox(height: 24),
 
-                      // Mood selector
-                      Text(
-                        AppStrings.homeMoodSelection,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
-                      const SizedBox(height: 16),
-                      const MoodSelector()
+                          // Mood selector
+                          Text(
+                            AppStrings.homeMoodSelection,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+                          const SizedBox(height: 16),
+                          const MoodSelector()
                           .animate()
                           .fadeIn(delay: 200.ms, duration: 400.ms)
                           .slideY(begin: 0.2, end: 0),
-                      const SizedBox(height: 32),
+                          const SizedBox(height: 32),
 
-                      // Quick actions
-                      Text(
-                        AppStrings.homeQuickActions,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
-                      const SizedBox(height: 16),
+                          // Quick actions
+                          Text(
+                            AppStrings.homeQuickActions,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
+                          const SizedBox(height: 16),
 
-                      // Quick action cards
-                      GridView.count(
+                          // Quick action cards
+                          GridView.count(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             crossAxisCount: 2,
@@ -173,7 +167,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 gradient: LinearGradient(
                                   colors: [
                                     AppColors.accent,
-                                    AppColors.accent.withValues(alpha: 0.7),
+                                    AppColors.accent.withOpacity(0.7),
                                   ],
                                 ),
                                 onTap: () => context.push('/meditation'),
@@ -202,82 +196,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           .fadeIn(delay: 400.ms, duration: 400.ms)
                           .slideY(begin: 0.2, end: 0),
 
-                      const SizedBox(height: 32),
-                      const SizedBox(height: 32),
-                    ],
+                          const SizedBox(height: 32),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
+          bottomNavigationBar: const AnimatedBottomNav(currentIndex: 0),
         ),
-      ),
-      bottomNavigationBar: const AnimatedBottomNav(currentIndex: 0),
-    ),
         const CounselingFloatingButton(),
       ],
     );
   }
 }
 
-class _SuggestionCard extends StatelessWidget {
-  final String lastMood;
-  final void Function(String) onNavigate;
-  const _SuggestionCard({required this.lastMood, required this.onNavigate});
-
-  @override
-  Widget build(BuildContext context) {
-    String title;
-    String button;
-    String route;
-    if (lastMood == AppStrings.moodAnxious || lastMood == AppStrings.moodSad) {
-      title = 'You might benefit from a short breath or meditation.';
-      button = AppStrings.homeBreathingExercise;
-      route = '/breathing';
-    } else if (lastMood == AppStrings.moodOkay) {
-      title = 'Keep momentum with a quick habit.';
-      button = AppStrings.homeJournal;
-      route = '/journal';
-    } else {
-      title = 'Explore a worksheet to deepen reflection.';
-      button = 'CBT Worksheets';
-      route = '/worksheets';
-    }
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(title, style: Theme.of(context).textTheme.bodyLarge),
-          ),
-          const SizedBox(width: 12),
-          ElevatedButton(
-            onPressed: () => onNavigate(route),
-            child: Text(button),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TodayPlanCard extends StatelessWidget {
+class _PersonalizedInsightsCard extends StatelessWidget {
   final String mood;
   final int? intensity;
   final List<String> tags;
   final void Function(String) onNavigate;
-  const _TodayPlanCard({
+
+  const _PersonalizedInsightsCard({
     required this.mood,
     required this.intensity,
     required this.tags,
@@ -286,56 +229,316 @@ class _TodayPlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<_PlanItem> items = [];
-    if ((mood == AppStrings.moodAnxious) || (intensity != null && intensity! >= 4)) {
-      items.add(_PlanItem('Breathing 3 min', Icons.air_outlined, '/breathing'));
-      items.add(_PlanItem('Meditation 5 min', Icons.self_improvement_outlined, '/meditation'));
-    } else {
-      items.add(_PlanItem('Journal Prompt', Icons.edit_note_outlined, '/journal'));
-      items.add(_PlanItem('Worksheet', Icons.menu_book_outlined, '/worksheets'));
-    }
-    if (tags.contains('sleep')) {
-      items.add(_PlanItem('Wind-down Breathing', Icons.nightlight_round, '/breathing'));
-    }
+    final isHighIntensity = intensity != null && intensity! >= 4;
+    final isAnxiousOrSad = mood == AppStrings.moodAnxious || mood == AppStrings.moodSad;
+    final isOkay = mood == AppStrings.moodOkay;
+    
+    // Get the appropriate gradient based on mood
+    final gradient = _getMoodGradient(mood, isHighIntensity);
+    
+    // Determine content
+    final suggestion = _getSuggestion(mood, isHighIntensity, isOkay);
+    final planItems = _getPlanItems(mood, isHighIntensity, tags);
 
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary, width: 1),
+        borderRadius: BorderRadius.circular(24),
+        gradient: gradient,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppColors.primary.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Stack(
         children: [
-          Text('Today Plan', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: items.map((i) => ElevatedButton.icon(
-              onPressed: () => onNavigate(i.route),
-              icon: Icon(i.icon),
-              label: Text(i.title),
-            )).toList(),
+          // Background pattern
+          Positioned(
+            top: -20,
+            right: -20,
+            child: Icon(
+              Icons.psychology_outlined,
+              size: 120,
+              color: Colors.white.withOpacity(0.1),
+            ),
+          ),
+          
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _getMoodIcon(mood),
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            mood.toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'PERSONALIZED',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Main suggestion
+                Text(
+                  suggestion.title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
+                  ),
+                ),
+                
+                const SizedBox(height: 8),
+                
+                Text(
+                  suggestion.description,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Divider
+                Container(
+                  height: 1,
+                  color: Colors.white.withOpacity(0.2),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Today's plan section
+                Row(
+                  children: [
+                    Icon(
+                      Icons.today_outlined,
+                      color: Colors.white.withOpacity(0.8),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "TODAY'S PLAN",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Action buttons
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: planItems.map((item) => _buildPlanButton(item, context)).toList(),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildPlanButton(_PlanItem item, BuildContext context) {
+    return Material(
+      color: Colors.white.withOpacity(0.15),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: () => onNavigate(item.route),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withOpacity(0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                item.icon,
+                size: 18,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                item.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  LinearGradient _getMoodGradient(String mood, bool isHighIntensity) {
+    if (mood == AppStrings.moodAnxious || isHighIntensity) {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFF667eea),
+          const Color(0xFF764ba2),
+        ],
+      );
+    } else if (mood == AppStrings.moodSad) {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFFf093fb),
+          const Color(0xFFf5576c),
+        ],
+      );
+    } else if (mood == AppStrings.moodOkay) {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFF4facfe),
+          const Color(0xFF00f2fe),
+        ],
+      );
+    } else {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFFf093fb),
+          const Color(0xFFf5576c),
+        ],
+      );
+    }
+  }
+
+  IconData _getMoodIcon(String mood) {
+    switch (mood) {
+      case AppStrings.moodHappy:
+        return Icons.emoji_emotions_outlined;
+      case AppStrings.moodSad:
+        return Icons.sentiment_dissatisfied_outlined;
+      case AppStrings.moodAnxious:
+        return Icons.psychology_outlined;
+      case AppStrings.moodOkay:
+        return Icons.sentiment_neutral_outlined;
+      default:
+        return Icons.mood_outlined;
+    }
+  }
+
+  _Suggestion _getSuggestion(String mood, bool isHighIntensity, bool isOkay) {
+    if (mood == AppStrings.moodAnxious || mood == AppStrings.moodSad || isHighIntensity) {
+      return _Suggestion(
+        'Take a moment for yourself',
+        'Based on your recent mood, try a short breathing exercise or meditation to center yourself.',
+      );
+    } else if (isOkay) {
+      return _Suggestion(
+        'Build positive momentum',
+        'Maintain your balance with a quick journal entry to reflect on today.',
+      );
+    } else {
+      return _Suggestion(
+        'Deepen your self-awareness',
+        'Explore a worksheet to gain insights and continue your growth journey.',
+      );
+    }
+  }
+
+  List<_PlanItem> _getPlanItems(String mood, bool isHighIntensity, List<String> tags) {
+    final List<_PlanItem> items = [];
+    
+    if (mood == AppStrings.moodAnxious || mood == AppStrings.moodSad || isHighIntensity) {
+      items.add(_PlanItem('3-min Breathing', Icons.air_outlined, '/breathing'));
+      items.add(_PlanItem('5-min Meditation', Icons.self_improvement_outlined, '/meditation'));
+    } else {
+      items.add(_PlanItem('Journal Prompt', Icons.edit_note_outlined, '/journal'));
+      items.add(_PlanItem('CBT Worksheet', Icons.menu_book_outlined, '/worksheets'));
+    }
+    
+    if (tags.contains('sleep')) {
+      items.add(_PlanItem('Wind-down', Icons.nightlight_round_outlined, '/breathing'));
+    }
+    
+    // Always include at least 2 items
+    if (items.length < 2) {
+      items.add(_PlanItem('Quick Check-in', Icons.quiz_outlined, '/checkin'));
+    }
+    
+    return items;
+  }
+}
+
+class _Suggestion {
+  final String title;
+  final String description;
+  
+  _Suggestion(this.title, this.description);
 }
 
 class _PlanItem {
   final String title;
   final IconData icon;
   final String route;
+  
   _PlanItem(this.title, this.icon, this.route);
 }

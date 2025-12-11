@@ -3,6 +3,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:async';
 import '../../../config/colors.dart';
 import '../../../core/widgets/animated_background.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../services/worksheet_service.dart';
 
 class WorksheetDetailScreen extends StatefulWidget {
   final String id;
@@ -107,13 +110,13 @@ class _WorksheetDetailScreenState extends State<WorksheetDetailScreen> {
                             const SizedBox(height: 12),
                             TextField(controller: _gWhy, decoration: const InputDecoration(hintText: 'Why it matters (optional)')),
                             const SizedBox(height: 12),
-                            Row(
-                              children: const [
-                                Icon(Icons.photo_outlined),
-                                SizedBox(width: 8),
-                                Expanded(child: Text('Photo attachment (optional)')),
-                              ],
-                            ),
+                            // Row(
+                            //   children: const [
+                            //     Icon(Icons.photo_outlined),
+                            //     SizedBox(width: 8),
+                            //     Expanded(child: Text('Photo attachment (optional)')),
+                            //   ],
+                            // ),
                           ],
                         ),
                       ),
@@ -122,8 +125,22 @@ class _WorksheetDetailScreenState extends State<WorksheetDetailScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gratitude saved')));
+                        onPressed: () async {
+                          try {
+                            await WorksheetService(FirebaseFirestore.instance, FirebaseAuth.instance).saveEntry(
+                              worksheetId: 'gratitude',
+                              data: {
+                                'g1': _g1.text,
+                                'g2': _g2.text,
+                                'g3': _g3.text,
+                                'why': _gWhy.text,
+                                'date': DateTime.now().toIso8601String(),
+                              },
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gratitude saved')));
+                          } catch (_) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to save')));
+                          }
                         },
                         child: const Text('Save'),
                       ),
@@ -205,8 +222,26 @@ class _WorksheetDetailScreenState extends State<WorksheetDetailScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Worksheet saved')));
+                              onPressed: () async {
+                                try {
+                                  await WorksheetService(FirebaseFirestore.instance, FirebaseAuth.instance).saveEntry(
+                                    worksheetId: 'anxiety',
+                                    data: {
+                                      'what': _anxWhat.text,
+                                      'likelihood': _anxLikelihood.round(),
+                                      'worst': _anxWorst.text,
+                                      'likely': _anxLikely.text,
+                                      'control': _anxControl.text,
+                                      'actions': _anxActions.text,
+                                      'before': _anxBefore.round(),
+                                      'after': _anxAfter.round(),
+                                      'date': DateTime.now().toIso8601String(),
+                                    },
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Worksheet saved')));
+                                } catch (_) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to save')));
+                                }
                               },
                               child: const Text('Save'),
                             ),
@@ -246,7 +281,7 @@ class _WorksheetDetailScreenState extends State<WorksheetDetailScreen> {
                                       _exRemainingSeconds = 5;
                                       _exAnimVersion += 1;
                                     });
-                                    _exerciseTimer = Timer.periodic(const Duration(seconds: 1), (tt) {
+                                    _exerciseTimer = Timer.periodic(const Duration(seconds: 1), (tt) async {
                                       if (_exRemainingSeconds > 1) {
                                         setState(() {
                                           _exRemainingSeconds -= 1;
@@ -264,6 +299,16 @@ class _WorksheetDetailScreenState extends State<WorksheetDetailScreen> {
                                             _isExerciseRunning = false;
                                             _exerciseIndex = -1;
                                           });
+                                          try {
+                                            await WorksheetService(FirebaseFirestore.instance, FirebaseAuth.instance).saveEntry(
+                                              worksheetId: 'exercise',
+                                              data: {
+                                                'flow': _exerciseFlow.map((e) => e['label']).toList(),
+                                                'durationPerStepSec': 5,
+                                                'date': DateTime.now().toIso8601String(),
+                                              },
+                                            );
+                                          } catch (_) {}
                                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Exercise flow completed')));
                                         }
                                       }

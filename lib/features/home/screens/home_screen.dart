@@ -314,7 +314,7 @@ class _TodayPlanCard extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text('Today Plan', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),

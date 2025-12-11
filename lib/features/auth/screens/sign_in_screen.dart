@@ -6,6 +6,7 @@ import '../../../config/colors.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/user_service.dart';
+import '../../../core/utils/storage_service.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -40,7 +41,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       final auth = ref.read(authServiceProvider);
       final user = await auth.signInWithEmail(email, password);
       try {
-        await ref.read(userServiceProvider).createOrUpdateProfile(name: user.email ?? 'User');
+        final data = await ref.read(userServiceProvider).getUserData();
+        String? existingName = (data?['name'] as String?);
+        if (existingName == null || existingName.trim().isEmpty) {
+          final derived = user.displayName ?? (user.email?.split('@').first ?? 'User');
+          await ref.read(userServiceProvider).createOrUpdateProfile(name: derived);
+          await StorageService.setUserName(derived);
+        } else {
+          await StorageService.setUserName(existingName);
+        }
       } catch (_) {}
       if (mounted) {
         context.go('/home');

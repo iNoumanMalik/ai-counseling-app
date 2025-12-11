@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../core/widgets/animated_bottom_nav.dart';
 import '../../../data/dummy/counselors_data.dart';
 import '../widgets/category_card.dart';
-import '../../../core/widgets/webview_modal.dart';
 
 class DiscoveryScreen extends StatelessWidget {
   const DiscoveryScreen({super.key});
+
+  Future<void> _launchUrl(String urlString) async {
+    final url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $urlString');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,13 +71,7 @@ class DiscoveryScreen extends StatelessWidget {
                         return CategoryCard(
                           category: category,
                           onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => const WebViewModal(
-                                url: 'https://www.marham.pk/doctors/psychologist',
-                                title: 'Marham',
-                              ),
-                            );
+                            _launchUrl('https://www.marham.pk/doctors/psychologist');
                           },
                         )
                             .animate(delay: (index * 50).ms)
@@ -91,4 +91,3 @@ class DiscoveryScreen extends StatelessWidget {
     );
   }
 }
-

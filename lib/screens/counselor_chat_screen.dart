@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import '../model/chat_message.dart';
+import '../services/chatgpt_service.dart';
 
 class CounselorChatScreen extends StatefulWidget {
   const CounselorChatScreen({super.key});
@@ -12,43 +10,28 @@ class CounselorChatScreen extends StatefulWidget {
 }
 
 class _CounselorChatScreenState extends State<CounselorChatScreen> {
-  final List<Map<String, String>> messages = [];
+  final List<ChatMessage> _messages = [];
   final TextEditingController _controller = TextEditingController();
   bool _loading = false;
-  static String _apiKey = dotenv.env['OPENAI_KEY'] ?? '';
 
-  Future<void> sendMessage(String text) async {
-    setState(() { _loading = true; });
+  Future<void> _sendMessage() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
 
-    
+    setState(() {
+      _messages.add(ChatMessage(role: "user", text: text));
+      _loading = true;
+    });
 
-    messages.add({"role": "user", "text": text});
     _controller.clear();
 
-    final response = await http.post(
-      Uri.parse('https://api.openai.com/v1/chat/completions'),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $_apiKey",
-      },
-      body: jsonEncode({
-        "model": "gpt-4o-mini",
-        "messages": [
-          {"role": "system", "content": "You are a warm, supportive counseling coach."},
-          ...messages.map((m) => {
-            "role": m["role"],
-            "content": m["text"],
-          }),
-        ]
-      }),
+    final reply = await ChatGPTService.getReply(
+      _messages.map((m) => m.toMap()).toList(),
     );
-
-    final data = jsonDecode(response.body);
-    final String reply = data["choices"][0]["message"]["content"];
 
     setState(() {
       _loading = false;
-      messages.add({"role": "assistant", "text": reply});
+      _messages.add(ChatMessage(role: "assistant", text: reply));
     });
   }
 
@@ -59,31 +42,39 @@ class _CounselorChatScreenState extends State<CounselorChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView(
+            child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              children: messages.map((m) {
-                final isMe = m["role"] == "user";
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final msg = _messages[index];
+                final isUser = msg.role == "user";
+
                 return Align(
-                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment:
+                      isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 6),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isMe ? Colors.blueAccent : Colors.grey.shade300,
+                      color: isUser
+                          ? Colors.blueAccent
+                          : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      m["text"]!,
+                      msg.text,
                       style: TextStyle(
-                        color: isMe ? Colors.white : Colors.black,
+                        color: isUser ? Colors.white : Colors.black,
                       ),
                     ),
                   ),
                 );
-              }).toList(),
+              },
             ),
           ),
+
           if (_loading) const LinearProgressIndicator(),
+
           Row(
             children: [
               Expanded(
@@ -97,12 +88,8 @@ class _CounselorChatScreenState extends State<CounselorChatScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.send),
-                onPressed: () {
-                  if (_controller.text.trim().isNotEmpty) {
-                    sendMessage(_controller.text.trim());
-                  }
-                },
-              )
+                onPressed: _sendMessage,
+              ),
             ],
           ),
         ],

@@ -2,13 +2,40 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-
 class ChatGPTService {
-  static String _apiKey = dotenv.env['OPENAI_KEY'] ?? '';
-  static const String _url =
-      "https://api.openai.com/v1/chat/completions";
+  static final String _apiKey = dotenv.env['OPENAI_KEY'] ?? '';
+  static const String _url = "https://api.openai.com/v1/chat/completions";
 
-  static Future<String> askCounselor(String userMessage) async {
+  /// Single source of truth for counselor personality
+  static const String _systemPrompt = """
+You are MindWell, a warm, compassionate mental wellness counselor inside a mobile app.
+
+About the app:
+- MindWell supports emotional wellbeing through guided breathing and meditation.
+- Users can explore professional counselors through external platforms.
+- The app includes habit tracking such as drinking water, journaling, and daily routines.
+- It provides light exercise guidance for mental clarity.
+- It offers worksheets for self-reflection and emotional awareness.
+
+Your role:
+- Speak gently, calmly, and supportively.
+- Offer practical emotional guidance.
+- Encourage healthy habits when relevant.
+- Suggest app features naturally (breathing, journaling, meditation).
+- Never diagnose medical or mental conditions.
+- Never replace professional therapy.
+- If emotions are intense, gently suggest exploring professional counselors.
+
+Tone:
+- Empathetic
+- Non-judgmental
+- Short but meaningful responses
+- Human-like and reassuring
+""";
+
+  static Future<String> getReply(
+    List<Map<String, String>> conversation,
+  ) async {
     final response = await http.post(
       Uri.parse(_url),
       headers: {
@@ -16,25 +43,20 @@ class ChatGPTService {
         "Authorization": "Bearer $_apiKey",
       },
       body: jsonEncode({
-        "model": "gpt-4.1",
+        "model": "gpt-4o-mini",
         "messages": [
-          {
-            "role": "system",
-            "content":
-                "You are a warm, compassionate counseling coach. "
-                "You speak softly, give practical emotional guidance, "
-                "and avoid medical or diagnostic claims."
-          },
-          {
-            "role": "user",
-            "content": userMessage
-          }
-        ]
+          {"role": "system", "content": _systemPrompt},
+          ...conversation.map(
+            (m) => {
+              "role": m["role"],
+              "content": m["text"],
+            },
+          ),
+        ],
       }),
     );
 
-    final json = jsonDecode(response.body);
-
-    return json["choices"][0]["message"]["content"];
+    final data = jsonDecode(response.body);
+    return data["choices"][0]["message"]["content"];
   }
 }

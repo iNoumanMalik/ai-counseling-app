@@ -17,6 +17,7 @@ class StorageService {
   static const String _keyHabitLog = 'habit_log';
   static const String _keyHabitDefs = 'habit_defs';
   static const String _keyHabitsLastReset = 'habits_last_reset';
+  static const String _keyMeditationSessions = 'meditation_sessions';
 
   static Future<SharedPreferences> get _prefs async =>
       await SharedPreferences.getInstance();
@@ -262,6 +263,25 @@ class StorageService {
     final List<Map<String, dynamic>> items = await getHabitLog();
     items.add({'habitId': habitId, 'date': date});
     await prefs.setString(_keyHabitLog, jsonEncode(items));
+  }
+
+  static Future<List<Map<String, dynamic>>> getMeditationSessions() async {
+    final prefs = await _prefs;
+    final String? json = prefs.getString(_keyMeditationSessions);
+    if (json == null) return [];
+    try {
+      final List<dynamic> decoded = jsonDecode(json);
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<void> addMeditationSession({required String trackId, required String date}) async {
+    final prefs = await _prefs;
+    final List<Map<String, dynamic>> items = await getMeditationSessions();
+    items.add({'trackId': trackId, 'date': date});
+    await prefs.setString(_keyMeditationSessions, jsonEncode(items));
   }
 }
 

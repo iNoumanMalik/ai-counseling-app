@@ -90,6 +90,10 @@ class _MeditationScreenState extends State<MeditationScreen> {
           if (trackId != null) {
             await MeditationService(FirebaseFirestore.instance, FirebaseAuth.instance)
                 .markCompleted(trackId, true);
+            await StorageService.addMeditationSession(
+              trackId: trackId,
+              date: DateTime.now().toIso8601String(),
+            );
             final badges = await StorageService.getBadges();
             if (!badges.contains('meditation_first')) {
               await StorageService.addBadge('meditation_first');
@@ -155,6 +159,12 @@ class _MeditationScreenState extends State<MeditationScreen> {
       if (trackId != null) {
         await MeditationService(FirebaseFirestore.instance, FirebaseAuth.instance)
             .markCompleted(trackId, true);
+        try {
+          await StorageService.addMeditationSession(
+            trackId: trackId,
+            date: DateTime.now().toIso8601String(),
+          );
+        } catch (_) {}
         try {
           final badges = await StorageService.getBadges();
           if (!badges.contains('meditation_first')) {

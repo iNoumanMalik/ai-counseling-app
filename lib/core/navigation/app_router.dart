@@ -11,6 +11,7 @@ import '../../features/habits/screens/habits_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/meditation/screens/meditation_screen.dart';
 import '../../features/crisis/screens/sos_screen.dart';
+import '../../features/crisis/screens/mental_health_support_screen.dart';
 import '../../features/worksheets/screens/worksheets_screen.dart';
 import '../../features/worksheets/screens/worksheet_detail_screen.dart';
 import '../../features/checkin/screens/checkin_screen.dart';
@@ -128,6 +129,11 @@ final appRoutes = [
     path: '/sos',
     name: 'sos',
     builder: (context, state) => const SosScreen(),
+  ),
+  GoRoute(
+    path: '/crisis/support',
+    name: 'crisis-support',
+    builder: (context, state) => const MentalHealthSupportScreen(),
   ),
   GoRoute(
     path: '/mood/history',

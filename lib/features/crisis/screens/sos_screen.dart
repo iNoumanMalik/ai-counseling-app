@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/colors.dart';
@@ -141,15 +142,7 @@ class SosScreen extends StatelessWidget {
                   title: 'Mental Health Support',
                   description: 'Find mental health resources',
                   icon: Icons.favorite_outline,
-                  onTap: () {
-                    // TODO: Add mental health resources URL
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Resources coming soon'),
-                        backgroundColor: AppColors.primary,
-                      ),
-                    );
-                  },
+                  onTap: () => context.push('/crisis/support'),
                 )
                     .animate()
                     .fadeIn(delay: 600.ms, duration: 400.ms)

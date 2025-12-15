@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:semester_project/config/colors.dart';
 import 'package:semester_project/core/widgets/animated_background.dart';
 
@@ -40,6 +41,31 @@ class _MentalHealthSupportScreenState extends State<MentalHealthSupportScreen> {
       'text': '"Children don\'t experience mental health issues"',
       'detail': 'Mental health conditions can affect people of all ages',
     },
+    {
+      'isMyth': false,
+      'text': '"Children and teens can struggle too"',
+      'detail': 'Young people often benefit from early support and education',
+    },
+    {
+      'isMyth': true,
+      'text': '"Seeking help means I\'m weak"',
+      'detail': 'Asking for help is a sign of strength and self-care',
+    },
+    {
+      'isMyth': false,
+      'text': '"Recovery looks different for everyone"',
+      'detail': 'Progress can be gradual and unique to each person',
+    },
+    {
+      'isMyth': true,
+      'text': '"If I feel better, I should stop therapy"',
+      'detail': 'Many continue therapy to maintain gains and prevent relapse',
+    },
+    {
+      'isMyth': false,
+      'text': '"Self-help tools can complement therapy"',
+      'detail': 'Breathing, journaling, and mindfulness support professional care',
+    },
   ];
 
   void nextMythFact() {
@@ -76,9 +102,15 @@ class _MentalHealthSupportScreenState extends State<MentalHealthSupportScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Educational Content
-                _buildSectionTitle('Learn & Understand', Icons.school),
+                // _buildSectionTitle('Learn & Understand', Icons.school),
+                // const SizedBox(height: 16),
+                // _buildEducationCards(context),
+                // const SizedBox(height: 32),
+                
+                // Learn & Read (Blogs)
+                _buildSectionTitle('Learn & Read', Icons.menu_book_outlined),
                 const SizedBox(height: 16),
-                _buildEducationCards(context),
+                _buildBlogCards(context),
                 const SizedBox(height: 32),
                 
                 // Myth vs Fact
@@ -243,6 +275,172 @@ class _MentalHealthSupportScreenState extends State<MentalHealthSupportScreen> {
       ).animate().fadeIn(delay: (index * 100).ms).slideX(begin: 0.1, end: 0),
     );
   }
+  
+  Widget _buildBlogCards(BuildContext context) {
+    final blogs = [
+      BlogEntry(
+        title: 'Understanding Anxiety Disorders',
+        source: 'NIMH',
+        description: 'Symptoms, treatments, and coping strategies for anxiety.',
+        url: 'https://www.nimh.nih.gov/health/topics/anxiety-disorders',
+        badge: 'Trusted',
+      ),
+      BlogEntry(
+        title: 'Stress and Your Health',
+        source: 'NIH News in Health',
+        description: 'How stress impacts the body and ways to manage it.',
+        url: 'https://newsinhealth.nih.gov/2015/04/stress-and-health',
+        badge: 'Science',
+      ),
+      BlogEntry(
+        title: 'When to Seek Professional Help',
+        source: 'APA',
+        description: 'Recognizing signs and finding the right support.',
+        url: 'https://www.apa.org/topics',
+        badge: 'Guidance',
+      ),
+      BlogEntry(
+        title: 'Myths and Facts about Mental Health',
+        source: 'WHO',
+        description: 'Dispelling common myths with evidence-based facts.',
+        url: 'https://www.who.int/news-room/questions-and-answers/item/mental-health',
+        badge: 'Global',
+      ),
+      BlogEntry(
+        title: 'Mindfulness: An Introduction',
+        source: 'UCSF',
+        description: 'Basics of mindfulness and everyday practices.',
+        url: 'https://osher.ucsf.edu/patient-care/classes/mindfulness',
+        badge: 'Practice',
+      ),
+      BlogEntry(
+        title: 'Sleep and Mental Health',
+        source: 'Harvard Health',
+        description: 'The relationship between sleep quality and wellbeing.',
+        url: 'https://www.health.harvard.edu/newsletter_article/sleep-and-mental-health',
+        badge: 'Lifestyle',
+      ),
+    ];
+    
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: blogs.asMap().entries.map((e) {
+        final index = e.key;
+        final blog = e.value;
+        return _buildBlogCard(context, blog)
+            .animate()
+            .fadeIn(delay: (index * 80).ms)
+            .slideY(begin: 0.1, end: 0);
+      }).toList(),
+    );
+  }
+  
+  Widget _buildBlogCard(BuildContext context, BlogEntry blog) {
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.parse(blog.url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFEDE7F6),
+              Color(0xFFD9F7F2),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          ],
+          border: Border.all(color: AppColors.lightGray300.withOpacity(0.4)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: AppColors.secondaryGradient,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.menu_book_outlined, color: Colors.white),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          blog.title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.dark900,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                        ),
+                        child: Text(
+                          blog.badge,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    blog.description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: AppColors.darkText.withOpacity(0.75),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.public, size: 16, color: AppColors.darkText.withOpacity(0.6)),
+                      const SizedBox(width: 6),
+                      Text(
+                        blog.source,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.darkText.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.lightGray300),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildInteractiveMythFact() {
     final currentItem = mythFacts[currentMythFactIndex];
@@ -336,29 +534,6 @@ class _MentalHealthSupportScreenState extends State<MentalHealthSupportScreen> {
             ),
             
             const SizedBox(width: 16),
-            
-            // Progress Indicator
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Text(
-                '${currentMythFactIndex + 1} / ${mythFacts.length}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.dark900,
-                ),
-              ),
-            ),
             
             const SizedBox(width: 16),
             
@@ -542,5 +717,20 @@ class EducationCard {
     required this.icon,
     required this.time,
     required this.route,
+  });
+}
+
+class BlogEntry {
+  final String title;
+  final String source;
+  final String description;
+  final String url;
+  final String badge;
+  BlogEntry({
+    required this.title,
+    required this.source,
+    required this.description,
+    required this.url,
+    required this.badge,
   });
 }

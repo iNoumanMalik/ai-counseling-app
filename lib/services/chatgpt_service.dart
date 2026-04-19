@@ -43,7 +43,7 @@ Tone:
         "Authorization": "Bearer $_apiKey",
       },
       body: jsonEncode({
-        "model": "gpt-4o-mini",
+        "model": "gpt-5-nano",
         "messages": [
           {"role": "system", "content": _systemPrompt},
           ...conversation.map(

@@ -6,7 +6,6 @@ import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../core/utils/storage_service.dart';
-import 'onboarding_complete_screen.dart';
 
 final _currentPageProvider = StateProvider<int>((ref) => 0);
 

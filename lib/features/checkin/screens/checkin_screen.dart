@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:ui' show ImageFilter;
 import '../../../config/colors.dart';
 import '../../../core/widgets/animated_background.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/utils/storage_service.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 
 class CheckinScreen extends StatefulWidget {
   const CheckinScreen({super.key});
@@ -97,6 +102,51 @@ class _CheckinScreenState extends State<CheckinScreen> {
 
   final List<String> _responses = [];
 
+  Future<void> _saveResult() async {
+    int total = 0;
+    for (int i = 0; i < _questions.length; i++) {
+      final resp = _responses[i];
+      final opt = _questions[i].options.firstWhere(
+        (o) => o.label == resp,
+        orElse: () => _questions[i].options.first,
+      );
+      total += opt.points;
+    }
+    final max = _questions.length * 3;
+    String category;
+    if (total <= (max * 0.33).round()) {
+      category = 'low';
+    } else if (total <= (max * 0.66).round()) {
+      category = 'moderate';
+    } else {
+      category = 'high';
+    }
+
+    final payload = {
+      'timestamp': DateTime.now().toIso8601String(),
+      'total': total,
+      'max': max,
+      'category': category,
+      'responses': _responses,
+    };
+
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        final col = FirebaseFirestore.instance.collection('checkins').doc(uid).collection('entries');
+        await col.add(payload);
+      } else {
+        throw Exception('no user');
+      }
+    } catch (_) {
+      await _saveCheckinLocal(payload);
+    }
+  }
+
+  Future<void> _saveCheckinLocal(Map<String, dynamic> entry) async {
+    await StorageService.saveCheckinEntry(entry);
+  }
+
   void _selectOption(int optionIndex) {
     final selected = _questions[_index].options[optionIndex].label;
     _responses.add(selected);
@@ -106,6 +156,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
       });
     } else {
       setState(() {});
+      _saveResult();
     }
   }
 
@@ -120,66 +171,159 @@ class _CheckinScreenState extends State<CheckinScreen> {
   Widget build(BuildContext context) {
     final total = _questions.length;
     final isDone = _responses.length == total;
-    return Scaffold(
-      appBar: AppBar(title: const Text('MCQ Check-in')),
-      body: AnimatedBackground(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            title: const Text('Daily Check-in'),
+            centerTitle: true,
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+          ),
+          body: AnimatedBackground(
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      isDone ? 'Summary' : 'Question ${_index + 1} of $total',
-                      style: Theme.of(context).textTheme.titleLarge,
+                    // Header with progress info
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isDone ? 'Check-in Complete' : 'Daily Check-in',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.dark900,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            isDone 
+                              ? 'Here\'s your emotional wellness summary' 
+                              : 'Question ${_index + 1} of $total',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.mediumGray,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const Spacer(),
+                    
+                    // Progress indicators
+                    Column(
+                      children: [
+                        // Progress bar
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final progress = isDone ? 1.0 : (_index + 1) / total;
+                            final width = constraints.maxWidth * progress;
+                            return Container(
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Stack(
+                                children: [
+                                  AnimatedContainer(
+                                    duration: 400.ms,
+                                    curve: Curves.easeOutCubic,
+                                    width: width,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(3),
+                                      gradient: AppColors.primaryGradient,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        
+                        // Dots indicator
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(total, (i) {
+                            final active = isDone ? i == total - 1 : i == _index;
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: active ? 24 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                                color: active
+                                    ? AppColors.primary
+                                    : AppColors.primary.withValues(alpha: 0.2),
+                              ),
+                            ).animate(target: active ? 1 : 0).scale(
+                              begin: const Offset(1, 1),
+                              end: const Offset(1.1, 1.1),
+                              duration: 200.ms,
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 24),
+
+                    // Content area
+                    Expanded(
+                      child: isDone
+                          ? _Summary(responses: _responses, questions: _questions)
+                              .animate()
+                              .fadeIn(duration: 400.ms)
+                              .slideY(begin: 0.1, end: 0)
+                          : _QuestionCard(
+                              question: _questions[_index],
+                              onSelect: _selectOption,
+                            )
+                              .animate(key: ValueKey(_index))
+                              .fadeIn(duration: 400.ms)
+                              .slideY(begin: 0.05, end: 0),
+                    ),
+
+                    // Restart button (only when done)
+                    if (isDone)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _restart,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.refresh, size: 20),
+                                SizedBox(width: 8),
+                                Text('Start New Check-in', style: TextStyle(fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    value: isDone ? 1 : (_index + 1) / total,
-                    minHeight: 6,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                Expanded(
-                  child: isDone
-                      ? _Summary(responses: _responses, questions: _questions)
-                          .animate()
-                          .fadeIn(duration: 300.ms)
-                          .slideY(begin: 0.1, end: 0)
-                      : _QuestionCard(
-                          question: _questions[_index],
-                          onSelect: _selectOption,
-                        )
-                          .animate(key: ValueKey(_index))
-                          .fadeIn(duration: 300.ms)
-                          .slideX(begin: -0.2, end: 0),
-                ),
-
-                if (isDone)
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _restart,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Restart'),
-                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                    ),
-                  ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
+        const CounselingFloatingButton(),
+      ],
     );
   }
 }
@@ -191,68 +335,151 @@ class _QuestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.white,
-      margin: const EdgeInsets.only(top: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Icon(question.icon, color: AppColors.white),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    question.title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Question card
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.glassShadow.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            border: Border.all(
+              color: AppColors.primary.withOpacity(0.1),
+              width: 1,
             ),
-            const SizedBox(height: 16),
-
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                for (int i = 0; i < question.options.length; i++)
-                  ChoiceChip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(question.options[i].icon, size: 18, color: AppColors.dark900),
-                        const SizedBox(width: 6),
-                        Text(question.options[i].label),
-                      ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    selected: false,
-                    onSelected: (_) => onSelect(i),
-                    backgroundColor: AppColors.lightGray200,
-                    selectedColor: AppColors.primary.withValues(alpha: 0.15),
-                    labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.dark900),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    child: Icon(
+                      question.icon,
+                      color: AppColors.primary,
+                      size: 28,
+                    ),
                   ),
-              ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      question.title,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.dark900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Options grid
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 2.2,
+          ),
+          itemCount: question.options.length,
+          itemBuilder: (context, index) {
+            final option = question.options[index];
+            return _OptionCard(
+              label: option.label,
+              icon: option.icon,
+              onTap: () => onSelect(index),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _OptionCard extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+  const _OptionCard({required this.label, required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppColors.primary.withOpacity(0.15),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.glassShadow.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  size: 18,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black, // Changed to black
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ).animate().scale(
+        begin: const Offset(0.98, 0.98),
+        end: const Offset(1, 1),
+        duration: 200.ms,
       ),
     );
   }
@@ -277,87 +504,169 @@ class _Summary extends StatelessWidget {
 
     final max = questions.length * 3;
     String category;
+    String description;
     IconData categoryIcon;
     Color categoryColor;
+    
     // Scale thresholds for any question count
     if (total <= (max * 0.33).round()) {
-      category = 'Calm / Low stress';
-      categoryIcon = Icons.sentiment_very_satisfied;
+      category = 'Calm & Balanced';
+      description = 'You\'re doing great! Keep up the good work.';
+      categoryIcon = Icons.emoji_emotions;
       categoryColor = AppColors.primaryMintGreen;
     } else if (total <= (max * 0.66).round()) {
-      category = 'Moderate stress';
-      categoryIcon = Icons.sentiment_neutral;
+      category = 'Moderate Stress';
+      description = 'Take some time for self-care today.';
+      categoryIcon = Icons.psychology;
       categoryColor = AppColors.lavender;
     } else {
-      category = 'High stress / Needs support';
-      categoryIcon = Icons.sentiment_very_dissatisfied;
+      category = 'Needs Support';
+      description = 'Consider reaching out for support or taking a break.';
+      categoryIcon = Icons.health_and_safety;
       categoryColor = AppColors.error;
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Summary card
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: categoryColor.withValues(alpha: 0.15),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            color: categoryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: categoryColor.withOpacity(0.3)),
           ),
           child: Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  shape: BoxShape.circle,
+                  color: categoryColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: categoryColor.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: Icon(categoryIcon, color: AppColors.white),
+                child: Icon(categoryIcon, color: Colors.white, size: 32),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       category,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black, // Changed to black
+                      ),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.black87, // Changed to black
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       'Score: $total / $max',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.mediumGray),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black54, // Changed to black
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-        )
-            .animate()
-            .fadeIn(duration: 300.ms)
-            .slideY(begin: 0.1, end: 0),
+        ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
 
+        // Response list header
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(
+            'Your Responses',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Colors.black, // Changed to black
+            ),
+          ),
+        ),
+
+        // Responses list
         Expanded(
           child: ListView.builder(
+            physics: const BouncingScrollPhysics(),
             itemCount: questions.length,
             itemBuilder: (context, i) {
-              return Card(
+              return Container(
                 margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  leading: Icon(questions[i].icon, color: AppColors.primary),
-                  title: Text(questions[i].title),
-                  subtitle: Text('Your choice: ${responses[i]}'),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.glassShadow.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ).animate().fadeIn(duration: 200.ms);
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        questions[i].icon,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            questions[i].title,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black, // Changed to black
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            responses[i],
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.mediumGray,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().fadeIn(delay: (i * 50).ms);
             },
           ),
         ),

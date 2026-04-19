@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 import 'dart:async';
 
 final _breathingStateProvider = StateProvider<String>((ref) => 'ready');
@@ -19,9 +20,14 @@ class BreathingScreen extends ConsumerStatefulWidget {
 
 class _BreathingScreenState extends ConsumerState<BreathingScreen> {
   Timer? _timer;
-  int _cycleDuration = 6; // seconds for one breath cycle
+  final int _cycleDuration = 6; // seconds for one breath cycle
   int _currentCycleStep = 0;
   bool _isRunning = false;
+  String _formatMMSS(int seconds) {
+    final m = (seconds ~/ 60).toString().padLeft(2, '0');
+    final s = (seconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
 
   @override
   void dispose() {
@@ -70,6 +76,9 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
     ref.read(_breathingStateProvider.notifier).state = 'ready';
     ref.read(_remainingTimeProvider.notifier).state =
         ref.read(_sessionDurationProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Breathing session completed')),
+    );
   }
 
   void _setDuration(int seconds) {
@@ -83,7 +92,9 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
     final remaining = ref.watch(_remainingTimeProvider);
     final duration = ref.watch(_sessionDurationProvider);
 
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.breathingTitle),
       ),
@@ -130,15 +141,27 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
                       const SizedBox(height: 16),
 
                       // Timer
-                      if (_isRunning)
+                      if (_isRunning) ...[
                         Text(
-                          '${remaining}s remaining',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppColors.mediumGray,
+                          _formatMMSS(remaining),
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: AppColors.dark900,
+                                fontWeight: FontWeight.w600,
                               ),
                         )
                             .animate()
                             .fadeIn(duration: 300.ms),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: 180,
+                          child: LinearProgressIndicator(
+                            value: remaining / duration,
+                            minHeight: 6,
+                            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -152,35 +175,35 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
                     // Duration selector
                     if (!_isRunning) ...[
                       Text(
-                        '',
+                        'Select duration',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 16),
-                      // Wrap(
-                      //   spacing: 12,
-                      //   runSpacing: 12,
-                      //   alignment: WrapAlignment.center,
-                      //   children: [
-                      //     _DurationButton(
-                      //       label: AppStrings.breathingSession1Min,
-                      //       seconds: 60,
-                      //       isSelected: duration == 60,
-                      //       onTap: () => _setDuration(60),
-                      //     ),
-                      //     _DurationButton(
-                      //       label: AppStrings.breathingSession3Min,
-                      //       seconds: 180,
-                      //       isSelected: duration == 180,
-                      //       onTap: () => _setDuration(180),
-                      //     ),
-                      //     _DurationButton(
-                      //       label: AppStrings.breathingSession5Min,
-                      //       seconds: 300,
-                      //       isSelected: duration == 300,
-                      //       onTap: () => _setDuration(300),
-                      //     ),
-                      //   ],
-                      // ),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          _DurationButton(
+                            label: AppStrings.breathingSession1Min,
+                            seconds: 60,
+                            isSelected: duration == 60,
+                            onTap: () => _setDuration(60),
+                          ),
+                          _DurationButton(
+                            label: AppStrings.breathingSession3Min,
+                            seconds: 180,
+                            isSelected: duration == 180,
+                            onTap: () => _setDuration(180),
+                          ),
+                          _DurationButton(
+                            label: AppStrings.breathingSession5Min,
+                            seconds: 300,
+                            isSelected: duration == 300,
+                            onTap: () => _setDuration(300),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 32),
                     ],
 
@@ -203,6 +226,9 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
           ),
         ),
       ),
+    ),
+        const CounselingFloatingButton(),
+      ],
     );
   }
 }
@@ -274,28 +300,18 @@ class _DurationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.mediumGray,
-            width: 2,
-          ),
-        ),
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: isSelected ? AppColors.white : AppColors.darkText,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-        ),
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => onTap(),
+      backgroundColor: AppColors.lightGray200,
+      selectedColor: AppColors.primary.withValues(alpha: 0.15),
+      labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: isSelected ? AppColors.primary : AppColors.dark900,
       ),
-    )
-        .animate(target: isSelected ? 1 : 0)
-        .scale(duration: 200.ms);
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+    );
   }
 }
+
+ 

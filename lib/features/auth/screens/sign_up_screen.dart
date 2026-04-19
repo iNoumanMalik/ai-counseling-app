@@ -7,6 +7,7 @@ import '../../../core/widgets/animated_background.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/user_service.dart';
 import '../../../core/utils/storage_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -105,6 +106,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: SizedBox(
+                  height: 250,
+                  child: SvgPicture.asset(
+                    'assets/illustrations/undraw_welcome-cats.svg',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
               TextField(
                 controller: _nameController,
                 decoration: const InputDecoration(hintText: 'Name'),
@@ -120,7 +132,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 controller: _passwordController,
                 decoration: const InputDecoration(hintText: 'Password'),
                 obscureText: true,
-              ),
+              ),              
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,

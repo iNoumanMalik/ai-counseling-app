@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/meditation_service.dart';
 import '../../../core/utils/storage_service.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 
 class MeditationScreen extends StatefulWidget {
   const MeditationScreen({super.key});
@@ -89,6 +90,10 @@ class _MeditationScreenState extends State<MeditationScreen> {
           if (trackId != null) {
             await MeditationService(FirebaseFirestore.instance, FirebaseAuth.instance)
                 .markCompleted(trackId, true);
+            await StorageService.addMeditationSession(
+              trackId: trackId,
+              date: DateTime.now().toIso8601String(),
+            );
             final badges = await StorageService.getBadges();
             if (!badges.contains('meditation_first')) {
               await StorageService.addBadge('meditation_first');
@@ -155,6 +160,12 @@ class _MeditationScreenState extends State<MeditationScreen> {
         await MeditationService(FirebaseFirestore.instance, FirebaseAuth.instance)
             .markCompleted(trackId, true);
         try {
+          await StorageService.addMeditationSession(
+            trackId: trackId,
+            date: DateTime.now().toIso8601String(),
+          );
+        } catch (_) {}
+        try {
           final badges = await StorageService.getBadges();
           if (!badges.contains('meditation_first')) {
             await StorageService.addBadge('meditation_first');
@@ -179,7 +190,9 @@ class _MeditationScreenState extends State<MeditationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.homeMeditation),
         actions: [
@@ -294,7 +307,10 @@ class _MeditationScreenState extends State<MeditationScreen> {
           ),
         ],
       ),
-    )));
+    ))),
+        const CounselingFloatingButton(),
+      ],
+    );
   }
 }
 

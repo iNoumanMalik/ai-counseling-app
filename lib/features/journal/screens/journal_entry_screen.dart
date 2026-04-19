@@ -8,6 +8,7 @@ import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../services/journal_service.dart';
 import '../../../core/utils/storage_service.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 
 class JournalEntryScreen extends StatefulWidget {
   final String? entryId;
@@ -72,7 +73,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
       final service = JournalService(FirebaseFirestore.instance, FirebaseAuth.instance);
       await service.addOrUpdateEntry(
         id: entry['id'] as String,
-        title: entry['title'] as String?,
+        title: entry['title'],
         content: entry['content'] as String,
         date: entry['date'] as String,
       );
@@ -98,7 +99,9 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       appBar: AppBar(
         title: Text(widget.entryId == null ? 'New Entry' : 'Edit Entry'),
         actions: [
@@ -148,6 +151,9 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
           ],
         ),
       ),
+    ),
+        const CounselingFloatingButton(),
+      ],
     );
   }
 }

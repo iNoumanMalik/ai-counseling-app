@@ -13,10 +13,13 @@ class MoodService {
   CollectionReference<Map<String, dynamic>> get _entriesCol =>
       _db.collection('moods').doc(_uid).collection('entries');
 
-  Future<void> saveMood(String mood) async {
+  Future<void> saveMood(String mood, {int? intensity, String? note, List<String>? tags}) async {
     final entryRef = _entriesCol.doc();
     await entryRef.set({
       'mood': mood,
+      'intensity': intensity,
+      'note': note,
+      'tags': tags,
       'timestamp': FieldValue.serverTimestamp(),
     });
   }
@@ -28,6 +31,9 @@ class MoodService {
       return {
         'id': d.id,
         'mood': data['mood'],
+        'intensity': data['intensity'],
+        'note': data['note'],
+        'tags': (data['tags'] as List?)?.map((e) => e.toString()).toList(),
         'date': (data['timestamp'] as Timestamp?)?.toDate().toIso8601String(),
       };
     }).toList();
@@ -40,6 +46,9 @@ class MoodService {
         return {
           'id': d.id,
           'mood': data['mood'],
+          'intensity': data['intensity'],
+          'note': data['note'],
+          'tags': (data['tags'] as List?)?.map((e) => e.toString()).toList(),
           'date': (data['timestamp'] as Timestamp?)?.toDate().toIso8601String(),
         };
       }).toList(),

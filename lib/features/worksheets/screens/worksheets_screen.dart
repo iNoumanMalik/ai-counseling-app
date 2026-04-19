@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/colors.dart';
-import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
 
 class WorksheetsScreen extends StatelessWidget {
@@ -21,16 +20,23 @@ class WorksheetsScreen extends StatelessWidget {
       Worksheet(
         id: 'gratitude',
         title: 'Gratitude Journal',
-        description: 'Write down things you are grateful for',
+        description: 'Reflect on gratitude with simple prompts',
         icon: Icons.favorite_outline,
         color: AppColors.accent,
       ),
       Worksheet(
-        id: 'cbt',
-        title: 'CBT Thought Record',
-        description: 'Cognitive Behavioral Therapy worksheet',
-        icon: Icons.edit_note_outlined,
+        id: 'anxiety',
+        title: 'Anxiety/Worry Worksheet',
+        description: 'Structure worries and plan actions',
+        icon: Icons.psychology_outlined,
         color: AppColors.primary,
+      ),
+      Worksheet(
+        id: 'exercise',
+        title: 'Exercise Log',
+        description: 'Record a structured exercise session',
+        icon: Icons.fitness_center_outlined,
+        color: AppColors.softAqua,
       ),
     ];
 

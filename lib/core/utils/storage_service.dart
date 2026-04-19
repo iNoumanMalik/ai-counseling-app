@@ -13,6 +13,11 @@ class StorageService {
   static const String _keyBadges = 'badges';
   static const String _keySavedCounselors = 'saved_counselors';
   static const String _keyNotificationsEnabled = 'notifications_enabled';
+  static const String _keyCheckins = 'checkins';
+  static const String _keyHabitLog = 'habit_log';
+  static const String _keyHabitDefs = 'habit_defs';
+  static const String _keyHabitsLastReset = 'habits_last_reset';
+  static const String _keyMeditationSessions = 'meditation_sessions';
 
   static Future<SharedPreferences> get _prefs async =>
       await SharedPreferences.getInstance();
@@ -119,6 +124,43 @@ class StorageService {
     await prefs.setString(_keyHabits, jsonEncode(habits));
   }
 
+  static Future<List<Map<String, dynamic>>> getHabitDefs() async {
+    final prefs = await _prefs;
+    final String? json = prefs.getString(_keyHabitDefs);
+    if (json == null) return [];
+    try {
+      final List<dynamic> decoded = jsonDecode(json);
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<void> saveHabitDef(Map<String, dynamic> def) async {
+    final prefs = await _prefs;
+    final List<Map<String, dynamic>> defs = await getHabitDefs();
+    defs.removeWhere((d) => d['id'] == def['id']);
+    defs.add(def);
+    await prefs.setString(_keyHabitDefs, jsonEncode(defs));
+  }
+
+  static Future<void> deleteHabitDef(String id) async {
+    final prefs = await _prefs;
+    final List<Map<String, dynamic>> defs = await getHabitDefs();
+    defs.removeWhere((d) => d['id'] == id);
+    await prefs.setString(_keyHabitDefs, jsonEncode(defs));
+  }
+
+  static Future<String?> getHabitsLastReset() async {
+    final prefs = await _prefs;
+    return prefs.getString(_keyHabitsLastReset);
+  }
+
+  static Future<void> setHabitsLastReset(String isoDate) async {
+    final prefs = await _prefs;
+    await prefs.setString(_keyHabitsLastReset, isoDate);
+  }
+
   // Streaks
   static Future<int> getHabitStreak() async {
     final prefs = await _prefs;
@@ -183,6 +225,63 @@ class StorageService {
   static Future<void> setNotificationsEnabled(bool enabled) async {
     final prefs = await _prefs;
     await prefs.setBool(_keyNotificationsEnabled, enabled);
+  }
+
+  static Future<List<Map<String, dynamic>>> getCheckins() async {
+    final prefs = await _prefs;
+    final String? json = prefs.getString(_keyCheckins);
+    if (json == null) return [];
+    try {
+      final List<dynamic> decoded = jsonDecode(json);
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<void> saveCheckinEntry(Map<String, dynamic> entry) async {
+    final prefs = await _prefs;
+    final List<Map<String, dynamic>> items = await getCheckins();
+    items.add(entry);
+    await prefs.setString(_keyCheckins, jsonEncode(items));
+  }
+
+  static Future<List<Map<String, dynamic>>> getHabitLog() async {
+    final prefs = await _prefs;
+    final String? json = prefs.getString(_keyHabitLog);
+    if (json == null) return [];
+    try {
+      final List<dynamic> decoded = jsonDecode(json);
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<void> addHabitLogEntry({required String habitId, required String date}) async {
+    final prefs = await _prefs;
+    final List<Map<String, dynamic>> items = await getHabitLog();
+    items.add({'habitId': habitId, 'date': date});
+    await prefs.setString(_keyHabitLog, jsonEncode(items));
+  }
+
+  static Future<List<Map<String, dynamic>>> getMeditationSessions() async {
+    final prefs = await _prefs;
+    final String? json = prefs.getString(_keyMeditationSessions);
+    if (json == null) return [];
+    try {
+      final List<dynamic> decoded = jsonDecode(json);
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<void> addMeditationSession({required String trackId, required String date}) async {
+    final prefs = await _prefs;
+    final List<Map<String, dynamic>> items = await getMeditationSessions();
+    items.add({'trackId': trackId, 'date': date});
+    await prefs.setString(_keyMeditationSessions, jsonEncode(items));
   }
 }
 

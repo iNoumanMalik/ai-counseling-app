@@ -6,6 +6,8 @@ import '../../../config/colors.dart';
 import '../../../core/widgets/animated_background.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/user_service.dart';
+import '../../../core/utils/storage_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -40,7 +42,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       final auth = ref.read(authServiceProvider);
       final user = await auth.signInWithEmail(email, password);
       try {
-        await ref.read(userServiceProvider).createOrUpdateProfile(name: user.email ?? 'User');
+        final data = await ref.read(userServiceProvider).getUserData();
+        String? existingName = (data?['name'] as String?);
+        if (existingName == null || existingName.trim().isEmpty) {
+          final derived = user.displayName ?? (user.email?.split('@').first ?? 'User');
+          await ref.read(userServiceProvider).createOrUpdateProfile(name: derived);
+          await StorageService.setUserName(derived);
+        } else {
+          await StorageService.setUserName(existingName);
+        }
       } catch (_) {}
       if (mounted) {
         context.go('/home');
@@ -85,6 +95,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: SizedBox(
+                  height: 300,
+                  child: SvgPicture.asset(
+                    'assets/illustrations/undraw_celebration.svg',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(hintText: 'Email'),
@@ -96,6 +118,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 decoration: const InputDecoration(hintText: 'Password'),
                 obscureText: true,
               ),
+              
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,

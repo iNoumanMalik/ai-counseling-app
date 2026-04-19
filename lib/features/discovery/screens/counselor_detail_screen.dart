@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/widgets/webview_modal.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/colors.dart';
 import '../../../config/strings.dart';
@@ -8,8 +9,6 @@ import '../../../core/widgets/animated_background.dart';
 import '../../../data/dummy/counselors_data.dart';
 import '../../../data/models/counselor.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/counselor_service.dart';
 import '../../../core/utils/storage_service.dart';
 
@@ -28,14 +27,15 @@ class CounselorDetailScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _openUrl(String? url) async {
+  Future<void> _openUrl(BuildContext context, String? url) async {
     if (url == null || url.isEmpty) {
       return;
     }
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => WebViewModal(url: url, title: 'Book Online'),
+    );
   }
 
   Future<void> _openWhatsApp(String? number, String name) async {
@@ -199,13 +199,13 @@ class CounselorDetailScreen extends ConsumerWidget {
                       await ref.read(counselorServiceProvider).saveCounselor(
                         counselorId: counselor.id,
                         name: counselor.name,
-                        link: counselor.marhamUrl ?? counselor.oladocUrl ?? '',
+                        link: counselor.marhamUrl ?? '',
                       );
                     } catch (_) {
                       await StorageService.saveCounselor({
                         'id': counselor.id,
                         'name': counselor.name,
-                        'link': counselor.marhamUrl ?? counselor.oladocUrl ?? '',
+                        'link': counselor.marhamUrl ?? '',
                       });
                     }
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -224,7 +224,7 @@ class CounselorDetailScreen extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => _openUrl(counselor.marhamUrl),
+                    onPressed: () => _openUrl(context, counselor.marhamUrl),
                     icon: const Icon(Icons.calendar_today_outlined),
                     label: Text(AppStrings.counselorBookMarham),
                     style: OutlinedButton.styleFrom(
@@ -237,21 +237,6 @@ class CounselorDetailScreen extends ConsumerWidget {
                     .slideX(begin: -0.2, end: 0),
               const SizedBox(height: 12),
 
-              if (counselor.oladocUrl != null)
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _openUrl(counselor.oladocUrl),
-                    icon: const Icon(Icons.event_available_outlined),
-                    label: Text(AppStrings.counselorBookOladoc),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                  ),
-                )
-                    .animate()
-                    .fadeIn(delay: 600.ms, duration: 400.ms)
-                    .slideX(begin: -0.2, end: 0),
               const SizedBox(height: 12),
 
               if (counselor.whatsappNumber != null)

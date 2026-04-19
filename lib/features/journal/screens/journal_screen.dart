@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:intl/intl.dart';
 import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../core/widgets/animated_background.dart';
+import '../../../core/widgets/counseling_floating_button.dart';
 import '../../../core/utils/storage_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../services/journal_service.dart';
@@ -17,7 +17,9 @@ class JournalScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entriesAsync = ref.watch(journalEntriesProvider);
 
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.journalTitle),
       ),
@@ -150,6 +152,9 @@ class JournalScreen extends ConsumerWidget {
           .animate()
           .scale(duration: 300.ms, curve: Curves.elasticOut)
           .fadeIn(duration: 300.ms),
+    ),
+        const CounselingFloatingButton(),
+      ],
     );
   }
 }

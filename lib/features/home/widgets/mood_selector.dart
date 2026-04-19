@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:intl/intl.dart';
 import '../../../config/colors.dart';
 import '../../../config/strings.dart';
 import '../../../services/mood_service.dart';
@@ -9,6 +8,7 @@ import '../../../services/user_service.dart';
 import '../../../core/utils/storage_service.dart';
 import '../../../data/models/mood_entry.dart';
 import 'package:uuid/uuid.dart';
+import 'package:go_router/go_router.dart';
 
 final _selectedMoodProvider = StateProvider<String?>((ref) => null);
 
@@ -50,31 +50,117 @@ class _MoodSelectorState extends ConsumerState<MoodSelector> {
 
   Future<void> _selectMood(String mood) async {
     ref.read(_selectedMoodProvider.notifier).state = mood;
+    await _openDetailsSheet(mood);
+  }
 
-    // Save mood entry to Firestore and update lastMood
+  Future<void> _openDetailsSheet(String mood) async {
+    int intensity = 3;
+    final TextEditingController noteController = TextEditingController();
+    final Set<String> selectedTags = {};
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.mood_outlined, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text('Record mood', style: Theme.of(ctx).textTheme.titleMedium),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Intensity: $intensity/5'),
+                    Slider(
+                      value: intensity.toDouble(),
+                      onChanged: (v) {
+                        setModalState(() { intensity = v.round(); });
+                      },
+                      min: 1,
+                      max: 5,
+                      divisions: 4,
+                      label: '$intensity',
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: noteController,
+                      decoration: const InputDecoration(hintText: 'Add a note (optional)'),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final tag in const ['sleep','stress','work','study','social','health','relationships'])
+                          FilterChip(
+                            label: Text(tag),
+                            selected: selectedTags.contains(tag),
+                            onSelected: (sel) {
+                              setModalState(() {
+                                if (sel) { selectedTags.add(tag); } else { selectedTags.remove(tag); }
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await _saveMoodDetails(
+                            mood,
+                            intensity,
+                            noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+                            selectedTags.toList(),
+                          );
+                          if (mounted) Navigator.of(ctx).pop();
+                          if (mounted) _showRecommendations(mood, intensity);
+                        },
+                        child: const Text('Save'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _saveMoodDetails(String mood, int intensity, String? note, List<String> tags) async {
     try {
       final moodService = ref.read(moodServiceProvider);
-      await moodService.saveMood(mood);
+      await moodService.saveMood(mood, intensity: intensity, note: note, tags: tags);
       await ref.read(userServiceProvider).updateLastMood(mood);
     } catch (e) {
-      // Fallback to local storage
       final entry = MoodEntry(
         id: const Uuid().v4(),
         mood: mood,
         date: DateTime.now(),
+        note: note,
+        intensity: intensity,
+        tags: tags,
       );
       await StorageService.addMoodEntry(entry.toJson());
     }
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Mood recorded: $mood'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
       try {
         final history = await ref.read(moodServiceProvider).getMoodHistory();
         final count = history.length;
@@ -103,6 +189,31 @@ class _MoodSelectorState extends ConsumerState<MoodSelector> {
         }
       }
     }
+  }
+
+  void _showRecommendations(String mood, int intensity) {
+    String msg;
+    String actionLabel;
+    String route;
+    if (mood == AppStrings.moodAnxious || intensity >= 4) {
+      msg = 'Try a short breathing exercise';
+      actionLabel = 'Start';
+      route = '/breathing';
+    } else if (mood == AppStrings.moodSad) {
+      msg = 'Write a quick journal entry';
+      actionLabel = 'Open';
+      route = '/journal';
+    } else {
+      msg = 'Explore a worksheet for reflection';
+      actionLabel = 'Browse';
+      route = '/worksheets';
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        action: SnackBarAction(label: actionLabel, onPressed: () => context.push(route)),
+      ),
+    );
   }
 
   @override
